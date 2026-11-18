@@ -7,6 +7,7 @@
 - Everything else stays as before: subzone borders, exact borders, shared areas, small healer icons with names, hover tooltip and green line, your faction only.
 - New addon icon: the Deathskip spirit healer (addon list and on-screen box).
 - Shared deaths now carry the language of your game client, so collectors can see it (nothing changes for you).
+- With SeargentFish's original UnstuckSkips installed too, the Deathskip map button moves to the left of its buttons instead of covering them.
 
 # 0.4.7
 

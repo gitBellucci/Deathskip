@@ -1881,6 +1881,19 @@ menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -60)
 menuBtn:SetFrameStrata("DIALOG")
 menuBtn:SetFrameLevel(500)
 menuBtn:SetText("Deathskip")
+-- avec l'addon UnstuckSkips original (SeargentFish) : ses boutons "Show UnstuckSkips" / "Show DeathSkips" sont au
+-- meme endroit (-60, -60 et -60, -82) ; le notre se met a leur gauche pour ne pas les recouvrir
+local function PlaceMenuButton()
+    local other = _G.UnstuckSkips_Toggle
+    menuBtn:ClearAllPoints()
+    if other and other.GetLeft then
+        menuBtn:SetPoint("TOPRIGHT", other, "TOPLEFT", -8, 0)
+    else
+        menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -60)
+    end
+end
+PlaceMenuButton()
+WorldMapFrame:HookScript("OnShow", PlaceMenuButton)
 
 local menu = CreateFrame("Frame", nil, menuBtn, "BackdropTemplate")
 menu:SetPoint("TOPRIGHT", menuBtn, "BOTTOMRIGHT", 0, -2)
