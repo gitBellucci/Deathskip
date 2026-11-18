@@ -47,6 +47,10 @@ The _Deathskip_ button at the top right of the world map opens a menu of clickab
 
 ![Options](https://i.imgur.com/Z0qSaP0.jpeg)
 
+![The on-screen Deathskips box](https://i.imgur.com/FSOduGz.png)
+
+_The on-screen box tells you where you'd respawn if you died right now, and follows you as you walk._
+
 ### ![](https://i.imgur.com/hFdyJav.png) ___**Light on your PC**___
 
 All the data ships with the addon: nothing is computed while you play. The map drawing is cached per zone and redrawn at most once per frame, so opening, closing and zooming the map stay smooth.
