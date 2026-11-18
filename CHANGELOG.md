@@ -1,3 +1,8 @@
+# 0.4.9
+
+- For collectors: Deathskip now tells Deathskip Collector users when a newer Collector is available. Nothing changes for other players.
+- Same data as 0.4.8 (5,099 real deaths, 98% correct in cross-validation).
+
 # 0.4.8
 
 - **Data update: 5,099 real deaths** (1,286 new since 0.4.7), including the first deaths collected on NA realms. 98% correct in cross-validation.
