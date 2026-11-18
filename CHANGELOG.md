@@ -5,6 +5,7 @@
 - New default settings: the on-screen Deathskips box is now off (turn it on in the map menu or the options), and borders with no effect (dashed) are hidden.
 - Everything else stays as before: subzone borders, exact borders, shared areas, small healer icons with names, hover tooltip and green line, your faction only.
 - New addon icon: the Deathskip spirit healer (addon list and on-screen box).
+- Shared deaths now carry the language of your game client, so collectors can see it (nothing changes for you).
 
 # 0.4.7
 

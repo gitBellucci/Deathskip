@@ -25,6 +25,13 @@ local MAX_SYNC_U = 200
 local MAX_SYNC_REPLY = 40
 local MAX_COLLECTOR_REPLY = 600
 local PROTO = 2
+-- langue du client de l'expediteur : version du message = 300 + index (les anciennes versions l'ignorent)
+local LOCALES = {"enUS", "enGB", "frFR", "deDE", "esES", "esMX", "itIT", "ptBR", "ruRU", "koKR", "zhCN", "zhTW"}
+local LOCALE_INDEX = {}
+for i, l in ipairs(LOCALES) do LOCALE_INDEX[l] = i end
+local function VersionFor(r) return LOCALE_INDEX[r.l or ""] and (300 + LOCALE_INDEX[r.l]) or PROTO end
+local function LocaleOf(v) v = tonumber(v) or 0; return v > 300 and LOCALES[v - 300] or nil end
+local MY_LOCALE = GetLocale and GetLocale() or nil
 
 local Share = {}
 ns.Share = Share
@@ -46,7 +53,7 @@ local function Store(r)
     db.sharedOrder = db.sharedOrder or {}
     local k = Key(r)
     if db.shared[k] then return false end
-    db.shared[k] = {c = r.c, f = r.f, X = r.X, Y = r.Y, rX = r.rX, rY = r.rY, z = r.z, t = r.t, s = r.s}
+    db.shared[k] = {c = r.c, f = r.f, X = r.X, Y = r.Y, rX = r.rX, rY = r.rY, z = r.z, t = r.t, s = r.s, l = r.l}
     table.insert(db.sharedOrder, k)
     while #db.sharedOrder > MAX_STORED do
         db.shared[table.remove(db.sharedOrder, 1)] = nil
@@ -63,7 +70,7 @@ local function StoreU(r)
     db.sharedUOrder = db.sharedUOrder or {}
     local k = Key(r)
     if db.sharedU[k] then return false end
-    db.sharedU[k] = {c = r.c, f = r.f, X = r.X, Y = r.Y, rX = r.rX, rY = r.rY, z = r.z, t = r.t, s = r.s}
+    db.sharedU[k] = {c = r.c, f = r.f, X = r.X, Y = r.Y, rX = r.rX, rY = r.rY, z = r.z, t = r.t, s = r.s, l = r.l}
     table.insert(db.sharedUOrder, k)
     while #db.sharedUOrder > MAX_STORED_U do
         db.sharedU[table.remove(db.sharedUOrder, 1)] = nil
@@ -156,17 +163,19 @@ local function CleanSub(sub)
 end
 
 local function Encode(r)
-    return string.format("D|%d|%s|%d|%d|%d|%d|%d|%d|%d|%s", PROTO, r.f, r.c, r.X, r.Y, r.rX, r.rY, r.z or 0, r.t or 0,
+    return string.format("D|%d|%s|%d|%d|%d|%d|%d|%d|%d|%s", VersionFor(r), r.f, r.c, r.X, r.Y, r.rX, r.rY, r.z or 0, r.t or 0,
                          CleanSub(r.s))
 end
 
 local function EncodeU(r)
-    return string.format("U|1|%s|%d|%d|%d|%d|%d|%d|%d|%s", r.f, r.c, r.X, r.Y, r.rX, r.rY, r.z or 0, r.t or 0, CleanSub(r.s))
+    return string.format("U|%d|%s|%d|%d|%d|%d|%d|%d|%d|%s", LOCALE_INDEX[r.l or ""] and (300 + LOCALE_INDEX[r.l]) or 1,
+                         r.f, r.c, r.X, r.Y, r.rX, r.rY, r.z or 0, r.t or 0, CleanSub(r.s))
 end
 
 -- appele par Core quand le personnage a ete deplace pendant qu'il etait deconnecte
 function Share:QueueOwnUnstuck(r)
     r.s = CleanSub(r.s)
+    r.l = r.l or MY_LOCALE
     StoreU(r)
     if not Enabled() then return end
     C_Timer.After(SEND_DELAY_MIN + math.random() * (SEND_DELAY_MAX - SEND_DELAY_MIN), function()
@@ -182,6 +191,7 @@ function Share:QueueOwnDeath(d)
         X = math.floor(d.X + 0.5), Y = math.floor(d.Y + 0.5),
         rX = math.floor(d.respawnX + 0.5), rY = math.floor(d.respawnY + 0.5),
         z = d.zoneMap or 0, t = GetServerTime and GetServerTime() or time(), s = CleanSub(d.subzoneText),
+        l = MY_LOCALE,
     }
     Store(r)
     if not Enabled() then return end
@@ -210,7 +220,7 @@ function Share:OnMessage(text, sender)
         if c ~= 0 and c ~= 1 then return end
         local sub = rest:match("^%d+|[AH]|%d|%-?%d+|%-?%d+|%-?%d+|%-?%d+|%d+|%d+|(.*)$")
         local r = {f = f, c = c, X = tonumber(X), Y = tonumber(Y), rX = tonumber(rX), rY = tonumber(rY),
-                   z = tonumber(z), t = tonumber(t), s = CleanSub(sub)}
+                   z = tonumber(z), t = tonumber(t), s = CleanSub(sub), l = LocaleOf(v)}
         -- garde-fous : reapparition a moins de 4 km de la mort, coordonnees plausibles
         if math.abs(r.X) > 20000 or math.abs(r.Y) > 20000 then return end
         if (r.X - r.rX) ^ 2 + (r.Y - r.rY) ^ 2 > 4000 ^ 2 then return end
@@ -228,7 +238,7 @@ function Share:OnMessage(text, sender)
         if c ~= 0 and c ~= 1 then return end
         local sub = rest:match("^%d+|[AH]|%d|%-?%d+|%-?%d+|%-?%d+|%-?%d+|%d+|%d+|(.*)$")
         local r = {f = f, c = c, X = tonumber(X), Y = tonumber(Y), rX = tonumber(rX), rY = tonumber(rY),
-                   z = tonumber(z), t = tonumber(t), s = CleanSub(sub)}
+                   z = tonumber(z), t = tonumber(t), s = CleanSub(sub), l = LocaleOf(v)}
         if math.abs(r.X) > 20000 or math.abs(r.Y) > 20000 or math.abs(r.rX) > 20000 or math.abs(r.rY) > 20000 then return end
         local isNew = StoreU(r)
         if DB().watch and isNew then
