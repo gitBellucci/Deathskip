@@ -8,7 +8,7 @@ _Know exactly where you respawn before you die. The death skip map built for how
 
 The Classic UnstuckSkips assumes you respawn at the nearest graveyard. On Forever that's wrong: die on The Merchant Coast and you wake up in Ratchet, die 100 yards away in The Barrens and you wake up at The Crossroads.
 
-Deathskip reads the game's own subzone borders and real deaths shared by players, and shows you the answer for any spot on the map: **98% correct** on 5,398 real deaths (cross-validation), against 78% for the old Classic rule.
+Deathskip reads the game's own subzone borders and real deaths shared by players, and shows you the answer for any spot on the map: **98% correct** on 5,671 real deaths (cross-validation), against 78% for the old Classic rule.
 
 ![Hover a subzone to see where you respawn](https://i.imgur.com/CJmChIW.png)
 

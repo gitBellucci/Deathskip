@@ -1,3 +1,8 @@
+# 0.4.12
+
+- **Data update: 5,671 real deaths** (273 new since 0.4.10). 98% correct in cross-validation.
+- The on-screen **Deathskips** box (the graveyard for where you stand) is back on screen by default, now with a close button. Closed it? The Deathskip menu on the world map or `/usf notifier` brings it back.
+
 # 0.4.11
 
 - The on-screen **Deathskips** box (the graveyard for where you stand) is back on screen by default, now with a close button. Closed it? The Deathskip menu on the world map or `/usf notifier` brings it back.
