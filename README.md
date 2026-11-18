@@ -4,6 +4,10 @@ _Know exactly where you respawn before you die. The death skip map built for how
 
 [![Join the Deathskip Discord](https://i.imgur.com/W69RzbD.png)](https://discord.gg/BKHgxaatxz)
 
+![The on-screen Deathskips box](https://i.imgur.com/FSOduGz.png)
+
+_The on-screen box tells you where you'd respawn if you died right now, and follows you as you walk._
+
 **On Forever, the subzone you die in decides your graveyard, not the distance.**
 
 The Classic UnstuckSkips assumes you respawn at the nearest graveyard. On Forever that's wrong: die on The Merchant Coast and you wake up in Ratchet, die 100 yards away in The Barrens and you wake up at The Crossroads.
@@ -46,10 +50,6 @@ The _Deathskip_ button at the top right of the world map opens a menu of clickab
 *   the on-screen _Deathskips_ box (on by default, close it with its X, bring it back from the map menu): the graveyard you'd respawn at if you died where you stand, updated as you walk
 
 ![Options](https://i.imgur.com/Z0qSaP0.jpeg)
-
-![The on-screen Deathskips box](https://i.imgur.com/FSOduGz.png)
-
-_The on-screen box tells you where you'd respawn if you died right now, and follows you as you walk._
 
 ### ![](https://i.imgur.com/hFdyJav.png) ___**Light on your PC**___
 
