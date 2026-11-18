@@ -1,3 +1,7 @@
+# 0.4.10
+
+- **Data update: 5,398 real deaths** (299 new since 0.4.9). 98% correct in cross-validation.
+
 # 0.4.9
 
 - For collectors: Deathskip now tells Deathskip Collector users when a newer Collector is available. Nothing changes for other players.
