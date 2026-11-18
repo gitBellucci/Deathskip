@@ -2,6 +2,8 @@
 
 _Know exactly where you respawn before you die. The death skip map built for how graveyards really work on WoW Forever._
 
+[![Join the Deathskip Discord](https://i.imgur.com/W69RzbD.png)](https://discord.gg/BKHgxaatxz)
+
 **On Forever, the subzone you die in decides your graveyard, not the distance.**
 
 The Classic UnstuckSkips assumes you respawn at the nearest graveyard. On Forever that's wrong: die on The Merchant Coast and you wake up in Ratchet, die 100 yards away in The Barrens and you wake up at The Crossroads.
@@ -80,3 +82,5 @@ Nothing to do: your death is shared automatically and fixes the next update. To 
 *   Skip discoveries and research: **Tactics**, **TommySalami**, **Vitochie**.
 *   Map line drawing: **Semlar**.
 *   Client file reader adapted from OpenMap by **jiforever** (MIT). Icons: Lorc, game-icons.net (CC BY 3.0).
+
+[![Join the Deathskip Discord](https://i.imgur.com/W69RzbD.png)](https://discord.gg/BKHgxaatxz)
