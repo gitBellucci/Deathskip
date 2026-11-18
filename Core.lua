@@ -1935,3 +1935,25 @@ end
 menu:SetScript("OnShow", mapMenuRefresh)
 menuBtn:SetScript("OnClick", function() menu:SetShown(not menu:IsShown()) end)
 WorldMapFrame:HookScript("OnHide", function() menu:Hide() end)
+
+---------------------------------------------------------------------------
+-- Lecture seule, pour l'addon annexe Deathskip Collector (noms des cimetieres, morts deja dans nos donnees)
+---------------------------------------------------------------------------
+do
+    local evidenceKeys
+    _G.DeathskipAPI = {
+        version = 1,
+        -- nom du cimetiere le plus proche d'un point de reapparition (nil si aucun a moins de 250 m)
+        GraveyardName = function(c, X, Y) return RespawnGraveyard(c, X, Y) end,
+        -- cle "c:f:X:Y:rX:rY" deja dans les morts livrees avec l'addon (Data/evidence.lua)
+        IsKnown = function(key)
+            if not evidenceKeys then
+                evidenceKeys = {}
+                for _, r in ipairs(ns.EVIDENCE or {}) do
+                    evidenceKeys[fmt("%d:%s:%d:%d:%d:%d", r.c, r.f, r.X, r.Y, r.rX, r.rY)] = true
+                end
+            end
+            return evidenceKeys[key] == true
+        end,
+    }
+end
