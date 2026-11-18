@@ -1,3 +1,8 @@
+# 0.4.14
+
+- **Data update: 6,186 real deaths** (383 new since 0.4.13). 98.6% correct in cross-validation.
+- The on-screen **Deathskips** box now knows the places where the game puts you in another zone than the map shows: the Uldaman tunnels under Stonesplinter Valley (Badlands graveyard), Undercity, The Shaper's Terrace (The Great Lift), the Swamp of Sorrows edge of the Blasted Lands (Stonard) and a few more. Standing there, it shows the graveyard you really go to.
+
 # 0.4.13
 
 - **Data update: 5,803 real deaths**. 98.7% correct in cross-validation (98% before).

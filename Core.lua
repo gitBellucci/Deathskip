@@ -1230,9 +1230,28 @@ local function UpdateNotifier()
         if not bestD or d < bestD then best, bestD = v[3], d end
     end
     tUnstuck:SetText(best or "—")
-    -- death skip Forever : la grille ("Ratchet (The Barrens)")
+    -- death skip Forever : la grille ("Ratchet (The Barrens)") ; mais si le joueur est dans une autre zone que celle
+    -- de la carte a cet endroit (tunnels d'Uldaman sous Stonesplinter Valley, Undercity...), le cimetiere observe
+    -- pour cette zone (Data/layers.lua)
     do
-        local g = GridGY(contID, X, Y)
+        local g
+        if ns.LAYERS then
+            local area = GridArea(contID, X, Y)
+            local zm = C_Map.GetBestMapForUnit("player")
+            while zm do
+                local info = C_Map.GetMapInfo(zm)
+                if not info or info.mapType < 3 then zm = nil break end
+                if info.mapType == 3 then break end
+                zm = info.parentMapID
+            end
+            local f = UnitFactionGroup("player") == "Horde" and "H" or "A"
+            local L = area and zm and ns.LAYERS[f .. ":" .. zm .. ":" .. area]
+            if L then
+                local name = RespawnGraveyard(L.c, L.rX, L.rY)
+                if name then g = {name = name} end
+            end
+        end
+        g = g or GridGY(contID, X, Y)
         local txt = "—"
         if g then
             local zoneName, place = g.name:match("^(.-),%s*(.+)$")
