@@ -1,5 +1,6 @@
 # 0.4.8
 
+- **Data update: 5,099 real deaths** (1,286 new since 0.4.7), including the first deaths collected on NA realms. 98% correct in cross-validation.
 - The addon is now called **Deathskip** in game too: addon list, options, world map button and chat messages (the folder stays UnstuckSkipsForever, so your settings are kept).
 - **Recorded deaths** (blue dots) now show the real deaths included with the addon, the same for everyone, instead of only the deaths your own game received.
 - New default settings: the on-screen Deathskips box is now off (turn it on in the map menu or the options), and borders with no effect (dashed) are hidden.
