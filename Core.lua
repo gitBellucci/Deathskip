@@ -1978,7 +1978,7 @@ do
         version = 1,
         -- derniere version de Deathskip Collector (a monter a chaque version du Collector) : le Collector previent
         -- son utilisateur s'il est en retard. Les joueurs sans Collector ne voient rien.
-        LatestCollector = "1.4.0",
+        LatestCollector = "1.4.1",
         -- nom du cimetiere le plus proche d'un point de reapparition (nil si aucun a moins de 250 m)
         GraveyardName = function(c, X, Y) return RespawnGraveyard(c, X, Y) end,
         -- sous-zone officielle d'un point, dans la langue du jeu (nil hors de la grille)

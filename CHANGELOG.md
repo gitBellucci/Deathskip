@@ -1,3 +1,8 @@
+# 0.4.13
+
+- **Data update: 5,803 real deaths**. 98.7% correct in cross-validation (98% before).
+- Fixed Stonesplinter Valley (Loch Modan): it now sends you to Thelsamar. Deaths in the Uldaman back-entrance tunnels underneath (they count as Badlands) had been pulling it to the Badlands graveyard. Deaths taken in a cave or city under another zone no longer change the map of the surface.
+
 # 0.4.12
 
 - **Data update: 5,671 real deaths** (273 new since 0.4.10). 98% correct in cross-validation.
