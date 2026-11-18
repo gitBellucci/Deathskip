@@ -36,7 +36,7 @@ You see your own faction by default, and it follows you when you switch between 
 
 ### ![](https://i.imgur.com/Q4ZUBcb.png) ___**Options right on the map**___
 
-The _UnstuckSkips Forever_ button at the top right of the world map opens a menu of clickable options. Everything else is in _Options > AddOns > UnstuckSkips Forever_ (or type `/usf`):
+The _Deathskip_ button at the top right of the world map opens a menu of clickable options. Everything else is in _Options > AddOns > Deathskip_ (or type `/usf`):
 
 *   subzone borders, no-effect borders (dashed), red splits, exact or smoothed borders, graveyard markers, old Classic deathskips
 *   graveyards as a spirit-healer icon or a cross, 4 sizes, 5 colors, with or without names

@@ -24,7 +24,7 @@ local COLORS = {
     death = {1, 1, 1, 0.8},
 }
 
-local function Print(msg, ...) print(fmt("|cffff5555UnstuckSkips Forever|r: " .. msg, ...)) end
+local function Print(msg, ...) print(fmt("|cff3be07aDeathskip|r: " .. msg, ...)) end
 -- textes : francais si le client est en francais, anglais sinon
 local FR = GetLocale() == "frFR"
 local function T(fr, en) return FR and fr or en end
@@ -1021,7 +1021,7 @@ function Redraw()
     local w, h = overlay:GetSize()
     local key = table.concat({mapID, math.floor(w + 0.5), math.floor(h + 0.5), tostring(db.unstuck), tostring(db.death),
                               tostring(db.showSubzones), tostring(db.showSplits), tostring(db.showDashed), tostring(db.exactBorders), tostring(db.showMarkers),
-                              tostring(db.showDeaths), db.showDeaths and db.sharedOrder and #db.sharedOrder or 0,
+                              tostring(db.showDeaths), #Deaths(),
                               tostring(db.markStyle), tostring(db.markSize), tostring(db.markColor), tostring(db.markNames),
                               UnitFactionGroup("player") or "", tostring(db.viewFaction)}, ":")
     if key == lastKey then return end
@@ -1073,11 +1073,12 @@ function Redraw()
                     used.names = true
                 end
             end
-            -- morts reelles collectees (points bleus) : seulement si l'option est cochee (desactivee par defaut)
-            if db.showDeaths and db.shared then
+            -- morts reelles (points bleus) : celles livrees avec l'addon (Data/evidence.lua), les memes pour tous ;
+            -- pas celles recues en direct sur ce PC. Seulement si l'option est cochee (desactivee par defaut)
+            if db.showDeaths then
                 local f = UnitFactionGroup("player") == "Horde" and "H" or "A"
                 local k = 0
-                for _, r in pairs(db.shared) do
+                for _, r in ipairs(Deaths()) do
                     if r.c == contID and r.f == f and k < 2500 then
                         local x, y = WorldToMap(contID, r.X, r.Y, mapID)
                         if x and x >= 0 and x <= 1 and y >= 0 and y <= 1 then
@@ -1093,8 +1094,8 @@ function Redraw()
                 used.dots = true
             end
         else
-            status:SetText(T("DeathSkips Forever : pas de données pour cette version.",
-                             "DeathSkips Forever: no data for this version."))
+            status:SetText(T("Deathskip : pas de données pour cette version.",
+                             "Deathskip: no data for this version."))
         end
     end
     HideUnused()
@@ -1675,7 +1676,7 @@ SlashCmdList.UNSTUCKSKIPSFOREVER = function(msg)
 end
 
 ---------------------------------------------------------------------------
--- Panneau d'options : Options > AddOns > UnstuckSkips Forever (ou /usf)
+-- Panneau d'options : Options > AddOns > Deathskip (ou /usf)
 ---------------------------------------------------------------------------
 local function SetShare(on)
     local db = DB()
@@ -1686,7 +1687,7 @@ local function SetShare(on)
 end
 
 local panel = CreateFrame("Frame")
-panel.name = "UnstuckSkips Forever"
+panel.name = "Deathskip"
 local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
 scroll:SetPoint("TOPLEFT", 0, -4)
 scroll:SetPoint("BOTTOMRIGHT", -28, 4)
@@ -1697,7 +1698,7 @@ local checks = {}
 
 local title = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 title:SetPoint("TOPLEFT", 16, -16)
-title:SetText("UnstuckSkips Forever")
+title:SetText("Deathskip")
 local sub = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
 sub:SetWidth(560)
@@ -1879,7 +1880,7 @@ menuBtn:SetSize(160, 22)
 menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -60)
 menuBtn:SetFrameStrata("DIALOG")
 menuBtn:SetFrameLevel(500)
-menuBtn:SetText("UnstuckSkips Forever")
+menuBtn:SetText("Deathskip")
 
 local menu = CreateFrame("Frame", nil, menuBtn, "BackdropTemplate")
 menu:SetPoint("TOPRIGHT", menuBtn, "BOTTOMRIGHT", 0, -2)

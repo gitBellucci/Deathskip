@@ -1,5 +1,5 @@
-UnstuckSkips Forever (beta)
-===========================
+Deathskip (beta)
+================
 
 Death skip map for WoW Forever. Fork of UnstuckSkips (MIT), adapted to how
 graveyards actually work on Forever, and improved by real deaths shared by players.
@@ -38,7 +38,7 @@ better lines for each update (your map itself only changes when the addon is upd
 - Max 1 small message per second, never in combat or instances. The channel is hidden.
 - Turn it off: /usf share
 
-Options: Options > AddOns > UnstuckSkips Forever, or type /usf.
+Options: Options > AddOns > Deathskip, or type /usf.
 Commands: /usf share (on/off) · /usf dots (show recorded deaths) · /usf data (deaths known) · /usf deaths (your last deaths)
           /usf notifier (small "where would I respawn" box)
           /usf collector (for data collectors: ask online players for everything at login)

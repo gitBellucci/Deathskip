@@ -1,5 +1,5 @@
 ## Interface: 16001, 11509
-## Title: UnstuckSkips Forever
+## Title: Deathskip
 ## Notes: Death skip map for WoW Forever: subzone-based graveyard rule, hover to see where you respawn. Fork of UnstuckSkips.
 ## Author: Bellucci (Forever fork) - original UnstuckSkips by SeargentFish, Yazpad, Zarant, cloudbells (MIT)
 ## Version: 0.4.8
