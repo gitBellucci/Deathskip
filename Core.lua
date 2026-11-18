@@ -41,7 +41,8 @@ local function DB()
     if db.exactBorders == nil then db.exactBorders = true end -- bordures exactes (cases de 33 m) par defaut
     if db.showDashed == nil then db.showDashed = false end    -- bordures sans effet (pointilles) masquees par defaut
     -- encadre Deathskips a l'ecran : desactive par defaut depuis 0.4.8 (une fois pour tous, comme l'ancien defaut)
-    if not db.hudDefaultOff then db.showNotifier = false; db.hudDefaultOff = true end
+    -- encadre Deathskips a l'ecran : de nouveau affiche par defaut depuis 0.4.11 (une fois pour tous), avec une croix
+    if not db.hudDefaultOn2 then db.showNotifier = true; db.hudDefaultOn2 = true end
     return db
 end
 ns.DB = DB
@@ -1180,8 +1181,26 @@ do
     end
 end
 ns.DeathIcon = function(size) return fmt(DEATH_ICON, size, size) end
+-- croix pour fermer l'encadre (on le remet par le menu de la carte, les options ou /usf notifier)
+local hudClose = CreateFrame("Button", nil, notifier, "UIPanelCloseButton")
+hudClose:SetSize(20, 20)
+hudClose:SetPoint("TOPRIGHT", notifier, "TOPRIGHT", 1, 1)
+hudClose:SetScript("OnClick", function()
+    DB().showNotifier = false
+    notifier:Hide()
+    print(fmt("|cff3be07aDeathskip|r: %s", T("encadré masqué. Pour le remettre : menu Deathskip de la carte, ou /usf notifier.",
+                                             "box hidden. To show it again: Deathskip menu on the world map, or /usf notifier.")))
+    if mapMenuRefresh then mapMenuRefresh() end
+end)
+hudClose:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:SetText(T("Masquer l'encadré", "Hide this box"))
+    GameTooltip:Show()
+end)
+hudClose:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
 local function FitHud()
-    notifier:SetWidth(math.max(150, 7 + 32 + 8 + math.max(hudTitle:GetStringWidth(), tDeath:GetStringWidth()) + 12))
+    notifier:SetWidth(math.max(150, 7 + 32 + 8 + math.max(hudTitle:GetStringWidth(), tDeath:GetStringWidth()) + 26))
 end
 
 local function PlayerWorld()

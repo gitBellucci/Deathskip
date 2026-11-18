@@ -43,7 +43,7 @@ The _Deathskip_ button at the top right of the world map opens a menu of clickab
 *   subzone borders, no-effect borders (dashed), red splits, exact or smoothed borders, graveyard markers, old Classic deathskips
 *   graveyards as a spirit-healer icon or a cross, 4 sizes, 5 colors, with or without names
 *   tooltip on/off, text size, green line
-*   the on-screen _Deathskips_ box (off by default, one click in the map menu): the graveyard you'd respawn at if you died where you stand, updated as you walk
+*   the on-screen _Deathskips_ box (on by default, close it with its X, bring it back from the map menu): the graveyard you'd respawn at if you died where you stand, updated as you walk
 
 ![Options](https://i.imgur.com/Z0qSaP0.jpeg)
 
