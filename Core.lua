@@ -1945,6 +1945,8 @@ do
         version = 1,
         -- nom du cimetiere le plus proche d'un point de reapparition (nil si aucun a moins de 250 m)
         GraveyardName = function(c, X, Y) return RespawnGraveyard(c, X, Y) end,
+        -- sous-zone officielle d'un point, dans la langue du jeu (nil hors de la grille)
+        SubzoneName = function(c, X, Y) local _, name = GridArea(c, X, Y) return name end,
         -- cle "c:f:X:Y:rX:rY" deja dans les morts livrees avec l'addon (Data/evidence.lua)
         IsKnown = function(key)
             if not evidenceKeys then
