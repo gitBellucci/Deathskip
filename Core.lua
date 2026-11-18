@@ -1948,6 +1948,8 @@ do
         GraveyardName = function(c, X, Y) return RespawnGraveyard(c, X, Y) end,
         -- sous-zone officielle d'un point, dans la langue du jeu (nil hors de la grille)
         SubzoneName = function(c, X, Y) local _, name = GridArea(c, X, Y) return name end,
+        -- cimetiere prevu par l'addon a cet endroit pour cette faction ("A" ou "H") : {name, X, Y} ou nil
+        Predict = function(c, X, Y, f) return GridGY(c, X, Y, f == "H" and "Horde" or "Alliance") end,
         -- cle "c:f:X:Y:rX:rY" deja dans les morts livrees avec l'addon (Data/evidence.lua)
         IsKnown = function(key)
             if not evidenceKeys then
