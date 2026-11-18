@@ -39,8 +39,9 @@ local function DB()
     if db.markSize == nil then db.markSize = 11 end           -- petite
     if db.markNames == nil then db.markNames = true end       -- noms des cimetieres sur les cartes de zone
     if db.exactBorders == nil then db.exactBorders = true end -- bordures exactes (cases de 33 m) par defaut
-    -- encadre Deathskips a l'ecran : active par defaut (une fois pour tous, meme ceux qui avaient l'ancien defaut)
-    if not db.hudDefaultOn then db.showNotifier = true; db.hudDefaultOn = true end
+    if db.showDashed == nil then db.showDashed = false end    -- bordures sans effet (pointilles) masquees par defaut
+    -- encadre Deathskips a l'ecran : desactive par defaut depuis 0.4.8 (une fois pour tous, comme l'ancien defaut)
+    if not db.hudDefaultOff then db.showNotifier = false; db.hudDefaultOff = true end
     return db
 end
 ns.DB = DB

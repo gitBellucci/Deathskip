@@ -1,3 +1,8 @@
+# 0.4.8
+
+- New default settings: the on-screen Deathskips box is now off (turn it on in the map menu or the options), and borders with no effect (dashed) are hidden.
+- Everything else stays as before: subzone borders, exact borders, shared areas, small healer icons with names, hover tooltip and green line, your faction only.
+
 # 0.4.7
 
 - **Data update: 3,813 real deaths** (2,341 new since 0.4.5). New graveyards learned, including Whispering Forest (Tirisfal) and the Horde spots of Riverglades.

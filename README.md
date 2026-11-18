@@ -21,7 +21,7 @@ Open the world map and hover any spot. The tooltip in the top left gives the **s
 The borders are the game's own subzones, read from the client's terrain files, on land and at sea. By default they follow the game's exact 33-yard squares, like ClassicZoneMap (smoothed lines are an option):
 
 *   **solid white**: crossing this border changes your graveyard
-*   **dashed white**: same graveyard on both sides, the border makes no difference (can be hidden)
+*   **dashed white**: same graveyard on both sides, the border makes no difference (hidden by default, one click to show)
 *   **red**: one area shared between two graveyards, you go to the nearer one. The line is the exact straight line halfway between the two graveyards
 
 So **no border is invisible**, and the ones that matter stand out. Graveyards your faction can reach are shown with a spirit-healer icon and their name.
@@ -41,7 +41,7 @@ The _UnstuckSkips Forever_ button at the top right of the world map opens a menu
 *   subzone borders, no-effect borders (dashed), red splits, exact or smoothed borders, graveyard markers, old Classic deathskips
 *   graveyards as a spirit-healer icon or a cross, 4 sizes, 5 colors, with or without names
 *   tooltip on/off, text size, green line
-*   the on-screen _Deathskips_ box (on by default): the graveyard you'd respawn at if you died where you stand, updated as you walk
+*   the on-screen _Deathskips_ box (off by default, one click in the map menu): the graveyard you'd respawn at if you died where you stand, updated as you walk
 
 ![Options](https://i.imgur.com/Z0qSaP0.jpeg)
 
