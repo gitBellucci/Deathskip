@@ -2,7 +2,7 @@
 ## Title: Deathskip
 ## Notes: Death skip map for WoW Forever: subzone-based graveyard rule, hover to see where you respawn. Fork of UnstuckSkips.
 ## Author: Bellucci (Forever fork) - original UnstuckSkips by SeargentFish, Yazpad, Zarant, cloudbells (MIT)
-## Version: 0.4.18
+## Version: 0.4.19
 ## Category: Map
 ## X-License: MIT
 ## OptionalDeps: RXPGuides
@@ -10,9 +10,11 @@
 ## IconTexture: Interface\AddOns\UnstuckSkipsForever\Media\icon
 
 Data/eastern_kingdom_partitions.lua
+Data/eastern_kingdom_gy_partitions.lua
 Data/eastern_kingdom_locs.lua
 Data/eastern_kingdom_gy_locs.lua
 Data/kalimdor_partitions.lua
+Data/kalimdor_gy_partitions.lua
 Data/kalimdor_locs.lua
 Data/kalimdor_gy_locs.lua
 Data/graveyard_links.lua

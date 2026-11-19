@@ -21,6 +21,7 @@ local AZEROTH = 947
 
 local COLORS = {
     unstuck = {1, 0, 0, 0.6},
+    olddeath = {0.75, 0.45, 1, 0.7},
     death = {1, 1, 1, 0.8},
 }
 
@@ -38,7 +39,7 @@ local function DB()
     if db.markStyle == nil then db.markStyle = "healer" end   -- icone d'esprit guerisseur
     if db.markSize == nil then db.markSize = 11 end           -- petite
     if db.markNames == nil then db.markNames = true end       -- noms des cimetieres sur les cartes de zone
-    if db.exactBorders == nil then db.exactBorders = true end -- bordures exactes (cases de 33 m) par defaut
+    db.exactBorders = true                                  -- bordures exactes (cases de 33 m) toujours : l'option est retiree
     if db.showDashed == nil then db.showDashed = false end    -- bordures sans effet (pointilles) masquees par defaut
     -- encadre Deathskips a l'ecran : desactive par defaut depuis 0.4.8 (une fois pour tous, comme l'ancien defaut)
     -- encadre Deathskips a l'ecran : de nouveau affiche par defaut depuis 0.4.11 (une fois pour tous), avec une croix
@@ -683,7 +684,7 @@ overlay:SetFrameLevel(15000)
 local status = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 status:SetPoint("TOP", 0, -50)
 
-local pools = {unstuck = {lines = {}, marks = {}}, death = {lines = {}, marks = {}}, dots = {lines = {}, marks = {}},
+local pools = {unstuck = {lines = {}, marks = {}}, olddeath = {lines = {}, marks = {}}, death = {lines = {}, marks = {}}, dots = {lines = {}, marks = {}},
                arrows = {lines = {}, marks = {}}}
 COLORS.arrows = {1, 0.85, 0.3, 0.55}
 pools.subz = {lines = {}, marks = {}}
@@ -938,6 +939,15 @@ local function UnstuckData(contID)
     return segs, marks
 end
 local unstuckCache = {}
+local function OldDeathData(contID)
+    local parts = contID == 0 and ns.eastern_kingdom_gy_partitions or ns.kalimdor_gy_partitions
+    local locs = contID == 0 and ns.eastern_kingdom_gy_locs or ns.kalimdor_gy_locs
+    local segs, marks = {}, {}
+    for _, p in ipairs(parts or {}) do table.insert(segs, {p[2], p[1], p[4], p[3]}) end
+    for _, l in ipairs(locs or {}) do table.insert(marks, {l[2], l[1], l[3]}) end
+    return segs, marks
+end
+local oldDeathCache = {}
 
 -- factions affichees : option viewFaction (Alliance, Horde, both) ; par defaut la sienne
 -- choix RELATIF (compte entier, valable pour tous les persos) : nil = ma faction, "other" = l'autre, "both" = les deux
@@ -1012,13 +1022,6 @@ function Redraw()
     local mapID = WorldMapFrame:GetMapID()
     local contID = mapID and mapID ~= AZEROTH and select(3, MapToWorld(mapID, 0.5, 0.5))
     wipe(used)
-    -- affichage de l'addon coupe (menu de la carte ou options) : plus rien sur la carte
-    if db.mapOff then
-        status:SetText("")
-        HideUnused()
-        lastKey = nil
-        return
-    end
     if contID ~= 0 and contID ~= 1 then
         status:SetText("")
         HideUnused()
@@ -1027,7 +1030,7 @@ function Redraw()
     end
     -- rien n'a change (meme carte, meme taille, memes options) : rien a faire
     local w, h = overlay:GetSize()
-    local key = table.concat({mapID, math.floor(w + 0.5), math.floor(h + 0.5), tostring(db.unstuck), tostring(db.death),
+    local key = table.concat({mapID, math.floor(w + 0.5), math.floor(h + 0.5), tostring(db.unstuck), tostring(db.oldDeath), tostring(db.death),
                               tostring(db.showSubzones), tostring(db.showSplits), tostring(db.showDashed), tostring(db.exactBorders), tostring(db.showMarkers),
                               tostring(db.showDeaths), #Deaths(),
                               tostring(db.markStyle), tostring(db.markSize), tostring(db.markColor), tostring(db.markNames),
@@ -1040,6 +1043,11 @@ function Redraw()
         unstuckCache[contID] = unstuckCache[contID] or {UnstuckData(contID)}
         DrawSet("unstuck", contID, mapID, unstuckCache[contID][1], unstuckCache[contID][2])
         used.unstuck = true
+    end
+    if db.oldDeath then
+        oldDeathCache[contID] = oldDeathCache[contID] or {OldDeathData(contID)}
+        DrawSet("olddeath", contID, mapID, oldDeathCache[contID][1], oldDeathCache[contID][2])
+        used.olddeath = true
     end
     if db.death then
         local data = ViewData(contID)
@@ -1169,7 +1177,7 @@ hudIcon:SetSize(32, 32)
 hudIcon:SetPoint("LEFT", 7, 0)
 local hudTitle = notifier:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 hudTitle:SetPoint("TOPLEFT", hudIcon, "TOPRIGHT", 8, -1)
-hudTitle:SetText("Deathskips")
+hudTitle:SetText(T("Actuel :", "Current:"))
 local tDeath = notifier:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
 tDeath:SetPoint("TOPLEFT", hudTitle, "BOTTOMLEFT", 0, -3)
 tDeath:SetTextColor(0.5, 1, 0.5)
@@ -1264,6 +1272,15 @@ local function UpdateNotifier()
             local zoneName, place = g.name:match("^(.-),%s*(.+)$")
             txt = place and fmt("%s |cff9a9a9a(%s)|r", place, zoneName) or g.name
             txt = ns.DeathIcon(14) .. " " .. txt
+        end
+        -- premiere ligne : l'endroit ou l'on est ("Current: Goldshire (Elwynn Forest)")
+        local zoneTxt = GetZoneText and GetZoneText() or ""
+        local subTxt = GetSubZoneText and GetSubZoneText() or ""
+        local here = (subTxt ~= "" and subTxt ~= zoneTxt) and fmt("%s |cff9a9a9a(%s)|r", subTxt, zoneTxt) or zoneTxt
+        local title = T("Actuel : ", "Current: ") .. "|cffffffff" .. here .. "|r"
+        if hudTitle:GetText() ~= title then
+            hudTitle:SetText(title)
+            FitHud()
         end
         if tDeath:GetText() ~= txt then
             tDeath:SetText(txt)
@@ -1403,7 +1420,7 @@ overlay:SetScript("OnUpdate", function(_, elapsed)
     if hoverElapsed < 0.1 then return end
     hoverElapsed = 0
     local db = DB()
-    if not db.death or db.mapOff or db.hoverTip == false or not WorldMapFrame:IsShown() or not canvas:IsMouseOver() then hoverText:Hide() return end
+    if not db.death or db.hoverTip == false or not WorldMapFrame:IsShown() or not canvas:IsMouseOver() then hoverText:Hide() return end
     -- taille responsive : proportionnelle a la largeur de la carte (pleine carte ~1500 px = taille choisie)
     local mw = mapBox:GetWidth() or 1500
     local want = math.floor((db.tipSize or 17) * math.max(0.55, math.min(1, mw / 1500)) + 0.5)
@@ -1833,18 +1850,16 @@ facNote:SetText(T("cimetières et réapparitions de la faction choisie (survol :
                   "graveyards and respawns of the chosen faction (hover: one line per faction)"))
 y = y - 28
 Header(y, T("Carte", "Map")); y = y - 22
-Check(y, T("Afficher Deathskip sur la carte", "Show Deathskip on the map"), T("décoché : rien sur la carte (lignes, cimetières, survol)", "unticked: nothing on the map (lines, graveyards, hover)"),
-      function() return not DB().mapOff end, function(v) DB().mapOff = (not v) or nil end); y = y - 28
 Check(y, T("Contours des sous-zones", "Subzone borders"), T("plein : le cimetière change ; pointillés : même cimetière", "solid: graveyard changes; dashed: same graveyard"),
       function() return DB().showSubzones ~= false end, function(v) DB().showSubzones = v end); y = y - 28
-Check(y, T("Bordures sans effet", "Borders with no effect"), T("pointillés : même cimetière des deux côtés", "dashed: same graveyard on both sides"),
+Check(y, T("Sous-zones sans effet", "Non impacted sub zones"), T("pointillés : même cimetière des deux côtés", "dashed: same graveyard on both sides"),
       function() return DB().showDashed ~= false end, function(v) DB().showDashed = v end); y = y - 28
-Check(y, T("Bordures exactes", "Exact borders"), T("les cases de 33 m du jeu, au lieu de lignes lissées", "the game's 33-yard squares instead of smoothed lines"),
-      function() return DB().exactBorders and true or false end, function(v) DB().exactBorders = v end); y = y - 28
 Check(y, T("Partages dans une même zone", "Shared areas"), T("lignes rouges : deux cimetières, le plus proche", "red lines: two graveyards, the nearer one"),
       function() return DB().showSplits ~= false end, function(v) DB().showSplits = v end); y = y - 28
-Check(y, T("Anciens deathskips", "Old deathskips"), T("lignes rouges de l'UnstuckSkips Classic", "red lines from Classic UnstuckSkips"),
-      function() return DB().unstuck and true or false end, function(v) DB().unstuck = v end); y = y - 36
+Check(y, T("Anciens unstucks", "Old unstucks"), T("lignes rouges de l'UnstuckSkips Classic d'origine", "red lines from the original Classic UnstuckSkips"),
+      function() return DB().unstuck and true or false end, function(v) DB().unstuck = v end); y = y - 28
+Check(y, T("Anciens deathskips", "Old deathskips"), T("lignes violettes de l'UnstuckSkips Classic d'origine", "purple lines from the original Classic UnstuckSkips"),
+      function() return DB().oldDeath and true or false end, function(v) DB().oldDeath = v end); y = y - 36
 
 Header(y, T("Esprits guérisseurs (cimetières)", "Spirit healers (graveyards)")); y = y - 22
 Check(y, T("Afficher les cimetières", "Show graveyards"), T("ceux que votre faction peut atteindre", "the ones your faction can reach"),
@@ -1863,7 +1878,7 @@ note:SetText(T("(la couleur s'applique au style Croix)", "(color applies to the 
 Header(y, T("Survol de la carte", "Map hover")); y = y - 22
 Check(y, T("Infobulle", "Tooltip"), T("sous-zone et réapparition, en haut à gauche de la carte", "subzone and respawn, top left of the map"),
       function() return DB().hoverTip ~= false end, function(v) DB().hoverTip = v end); y = y - 28
-Check(y, T("Trait vert vers l'esprit guérisseur", "Green line to the spirit healer"), nil,
+Check(y, T("Trait vert souris vers cimetière", "Mouse to Graveyard Green Line"), nil,
       function() return DB().hoverLine ~= false end, function(v) DB().hoverLine = v end); y = y - 30
 
 local sizeLabel = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
@@ -1944,52 +1959,115 @@ WorldMapFrame:HookScript("OnShow", PlaceMenuButton)
 
 local menu = CreateFrame("Frame", nil, menuBtn, "BackdropTemplate")
 menu:SetPoint("TOPRIGHT", menuBtn, "BOTTOMRIGHT", 0, -2)
-menu:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1})
-menu:SetBackdropColor(0, 0, 0, 0.85)
-menu:SetBackdropBorderColor(0.5, 0.5, 0.5, 0.9)
+menu:SetBackdrop({bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+                  edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+                  tile = true, tileSize = 16, edgeSize = 16, insets = {left = 4, right = 4, top = 4, bottom = 4}})
+menu:SetBackdropColor(0.04, 0.04, 0.06, 0.95)
+menu:SetBackdropBorderColor(0.85, 0.68, 0.25, 1)
 menu:SetFrameStrata("DIALOG")
 menu:SetFrameLevel(510)
+menu:EnableMouse(true)
 menu:Hide()
 
-local menuItems = {
-    {T("Afficher sur la carte", "Show on the map"), function() return not DB().mapOff end, function(v) DB().mapOff = (not v) or nil end},
-    {T("Contours des sous-zones", "Subzone borders"), function() return DB().showSubzones ~= false end, function(v) DB().showSubzones = v end},
-    {T("Bordures sans effet (pointillés)", "No-effect borders (dashed)"), function() return DB().showDashed ~= false end, function(v) DB().showDashed = v end},
-    {T("Bordures exactes (cases)", "Exact borders (squares)"), function() return DB().exactBorders and true or false end, function(v) DB().exactBorders = v end},
-    {T("Partages (rouge)", "Shared areas (red)"), function() return DB().showSplits ~= false end, function(v) DB().showSplits = v end},
-    {T("Cimetières (croix)", "Graveyards (X)"), function() return DB().showMarkers ~= false end, function(v) DB().showMarkers = v end},
-    {T("Noms des cimetières", "Graveyard names"), function() return DB().markNames and true or false end, function(v) DB().markNames = v end},
-    {T("Infobulle au survol", "Hover tooltip"), function() return DB().hoverTip ~= false end, function(v) DB().hoverTip = v end},
-    {T("Trait vert", "Green line"), function() return DB().hoverLine ~= false end, function(v) DB().hoverLine = v end},
-    {T("Anciens deathskips", "Old deathskips"), function() return DB().unstuck and true or false end, function(v) DB().unstuck = v end},
-    {T("Morts enregistrées (bleu)", "Recorded deaths (blue)"), function() return DB().showDeaths and true or false end, function(v) DB().showDeaths = v end},
-    {T("Encadré à l'écran", "On-screen box"), function() return DB().showNotifier and true or false end, function(v) DB().showNotifier = v; UpdateNotifier() end},
+local MENU_W = 250
+-- titre : icone de l'addon + "Deathskip"
+local mIcon = menu:CreateTexture(nil, "ARTWORK")
+mIcon:SetTexture("Interface\\AddOns\\" .. ADDON .. "\\Media\\icon.tga")
+mIcon:SetSize(22, 22)
+mIcon:SetPoint("TOPLEFT", 12, -10)
+local mTitle = menu:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+mTitle:SetPoint("LEFT", mIcon, "RIGHT", 6, 0)
+mTitle:SetText("Deathskip")
+
+-- rubriques et cases (libelle, explication au survol, lire, ecrire)
+local menuSections = {
+    {T("Carte", "Map"), {
+        {T("Contours des sous-zones", "Subzone borders"), T("Lignes pleines : le cimetière change de part et d'autre.", "Solid lines: your graveyard changes when you cross them."),
+         function() return DB().showSubzones ~= false end, function(v) DB().showSubzones = v end},
+        {T("Sous-zones sans effet", "Non impacted sub zones"), T("Pointillés : même cimetière des deux côtés.", "Dashed lines: same graveyard on both sides."),
+         function() return DB().showDashed ~= false end, function(v) DB().showDashed = v end},
+        {T("Partages (rouge)", "Shared areas (red)"), T("Une zone partagée entre deux cimetières : le plus proche gagne.", "One area split between two graveyards: the nearer one wins."),
+         function() return DB().showSplits ~= false end, function(v) DB().showSplits = v end},
+    }},
+    {T("Cimetières", "Graveyards"), {
+        {T("Cimetières", "Graveyards"), T("Les esprits guérisseurs et leurs noms.", "The spirit healers and their names."),
+         function() return DB().showMarkers ~= false end, function(v) DB().showMarkers = v; DB().markNames = v end},
+    }},
+    {T("Souris sur la carte", "Mouse over the map"), {
+        {T("Infobulle au survol", "Hover tooltip"), T("La sous-zone sous la souris et où vous réapparaîtriez.", "The subzone under the mouse and where you would respawn."),
+         function() return DB().hoverTip ~= false end, function(v) DB().hoverTip = v end},
+        {T("Trait vert souris vers cimetière", "Mouse to Graveyard Green Line"), T("Un trait vert de la souris jusqu'au cimetière.", "A green line from the mouse to the graveyard."),
+         function() return DB().hoverLine ~= false end, function(v) DB().hoverLine = v end},
+    }},
+    {T("Autres", "Other"), {
+        {T("Encadré à l'écran", "On-screen box"), T("Où vous êtes et le cimetière où vous réapparaîtriez maintenant.", "Where you are and the graveyard you would respawn at right now."),
+         function() return DB().showNotifier and true or false end, function(v) DB().showNotifier = v; UpdateNotifier() end},
+        {T("Morts enregistrées (bleu)", "Recorded deaths (blue)"), T("Points bleus : les vraies morts des joueurs utilisées par l'addon.", "Blue dots: the real player deaths the addon is built from."),
+         function() return DB().showDeaths and true or false end, function(v) DB().showDeaths = v end},
+    }},
+    -- ... et une rubrique a part, grisee : les donnees de l'addon Classic d'origine
+    {T("UnstuckSkips Classic (non vérifié sur Forever)", "Classic UnstuckSkips (not checked on Forever)"), {
+        {T("Anciens unstucks (rouge)", "Old unstucks (red)"), T("Les lignes d'unstuck de l'UnstuckSkips Classic d'origine.", "The unstuck lines of the original Classic UnstuckSkips."),
+         function() return DB().unstuck and true or false end, function(v) DB().unstuck = v end},
+        {T("Anciens deathskips (violet)", "Old deathskips (purple)"), T("Les lignes de deathskips de l'UnstuckSkips Classic d'origine. Sur Forever, ce sont les lignes Deathskip qui comptent.", "The deathskip lines of the original Classic UnstuckSkips. On Forever, the Deathskip lines are the ones that count."),
+         function() return DB().oldDeath and true or false end, function(v) DB().oldDeath = v end},
+    }, true},
 }
+
 local menuChecks = {}
-local my = -6
-local widest = 0
-for _, it in ipairs(menuItems) do
-    local cb = CreateFrame("CheckButton", nil, menu, "UICheckButtonTemplate")
-    cb:SetSize(22, 22)
-    cb:SetPoint("TOPLEFT", 6, my)
-    local fs = cb:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    fs:SetPoint("LEFT", cb, "RIGHT", 2, 0)
-    fs:SetText(it[1])
-    widest = math.max(widest, fs:GetStringWidth())
-    cb.get = it[2]
-    cb:SetScript("OnClick", function(self)
-        it[3](self:GetChecked() and true or false)
-        Redraw()
-    end)
-    table.insert(menuChecks, cb)
-    my = my - 24
+local my = -40
+for _, sec in ipairs(menuSections) do
+    if sec[3] then
+        -- separation nette : un trait sur toute la largeur et un titre gris, plus petit
+        my = my - 4
+        local sep = menu:CreateTexture(nil, "ARTWORK")
+        sep:SetColorTexture(0.5, 0.5, 0.5, 0.6)
+        sep:SetHeight(2)
+        sep:SetPoint("TOPLEFT", 8, my)
+        sep:SetPoint("TOPRIGHT", -8, my)
+        my = my - 8
+    end
+    local h = menu:CreateFontString(nil, "ARTWORK", sec[3] and "GameFontDisableSmall" or "GameFontNormal")
+    h:SetPoint("TOPLEFT", 14, my)
+    h:SetText(sec[1])
+    local line = menu:CreateTexture(nil, "ARTWORK")
+    line:SetColorTexture(0.85, 0.68, 0.25, 0.45)
+    line:SetHeight(1)
+    line:SetPoint("TOPLEFT", 14, my - 15)
+    line:SetPoint("TOPRIGHT", -14, my - 15)
+    my = my - 20
+    for _, it in ipairs(sec[2]) do
+        local cb = CreateFrame("CheckButton", nil, menu, "UICheckButtonTemplate")
+        cb:SetSize(24, 24)
+        cb:SetPoint("TOPLEFT", 14, my)
+        local fs = cb:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        fs:SetPoint("LEFT", cb, "RIGHT", 2, 1)
+        fs:SetText(it[1])
+        cb:SetHitRectInsets(0, -(MENU_W - 60), 0, 0)   -- le libelle est cliquable aussi
+        cb.get = it[3]
+        cb:SetScript("OnClick", function(self)
+            it[4](self:GetChecked() and true or false)
+            Redraw()
+        end)
+        cb:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+            GameTooltip:SetText(it[1])
+            GameTooltip:AddLine(it[2], 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        cb:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        table.insert(menuChecks, cb)
+        my = my - 24
+    end
+    my = my - 6
 end
 local more = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
-more:SetSize(140, 20)
-more:SetPoint("TOPLEFT", 10, my - 4)
-more:SetText(T("Plus d'options…", "More options…"))
+more:SetHeight(22)
+more:SetPoint("TOPLEFT", 14, my - 2)
+more:SetPoint("TOPRIGHT", -14, my - 2)
+more:SetText(T("Toutes les options…", "All options…"))
 more:SetScript("OnClick", function() menu:Hide(); if ns.OpenOptions then ns.OpenOptions() end end)
-menu:SetSize(math.max(170, widest + 44), -my + 34)
+menu:SetSize(MENU_W, -my + 36)
 
 mapMenuRefresh = function()
     for _, cb in ipairs(menuChecks) do cb:SetChecked(cb.get()) end
@@ -2007,11 +2085,25 @@ do
         version = 1,
         -- derniere version de Deathskip Collector (a monter a chaque version du Collector) : le Collector previent
         -- son utilisateur s'il est en retard. Les joueurs sans Collector ne voient rien.
-        LatestCollector = "1.4.1",
+        LatestCollector = "1.5.0",
         -- nom du cimetiere le plus proche d'un point de reapparition (nil si aucun a moins de 250 m)
         GraveyardName = function(c, X, Y) return RespawnGraveyard(c, X, Y) end,
         -- sous-zone officielle d'un point, dans la langue du jeu (nil hors de la grille)
         SubzoneName = function(c, X, Y) local _, name = GridArea(c, X, Y) return name end,
+        -- demande tout de suite a tous les joueurs en ligne toutes leurs morts (Deathskip Collector, quelques
+        -- secondes apres la connexion, sans attendre la demande automatique de Deathskip)
+        CollectNow = function()
+            if not ns.Share then return false end
+            ns.Share:JoinChannel()
+            C_Timer.After(2, function()
+                local db = DB()
+                local was = db.collector
+                db.collector = true
+                ns.Share:RequestSync()
+                db.collector = was
+            end)
+            return true
+        end,
         -- cimetiere prevu par l'addon a cet endroit pour cette faction ("A" ou "H") : {name, X, Y} ou nil
         Predict = function(c, X, Y, f) return GridGY(c, X, Y, f == "H" and "Horde" or "Alliance") end,
         -- cle "c:f:X:Y:rX:rY" deja dans les morts livrees avec l'addon (Data/evidence.lua)

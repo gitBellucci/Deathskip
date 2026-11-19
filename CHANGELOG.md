@@ -1,3 +1,12 @@
+# 0.4.19
+
+- **Data update: 8,557 real deaths** (308 new since 0.4.18). 98.7% correct in cross-validation.
+- **New map menu** in the game's own style: sections (Map, Graveyards, Mouse over the map, Other) and a short explanation when you hover each option.
+- Clearer options: **Non impacted sub zones** (the dashed borders), one **Graveyards** option for the markers and their names, **Mouse to Graveyard Green Line**. Exact borders are always on now.
+- The original Classic UnstuckSkips layers are set apart: **Old unstucks** (red) and the new **Old deathskips** (purple).
+- The on-screen box shows where you are: **Current: Goldshire (Elwynn Forest)**, then your graveyard.
+- For collectors: Deathskip Collector can now ask for deaths right after login.
+
 # 0.4.18
 
 - **Data update: 8,249 real deaths** (599 new since 0.4.17). 98.8% correct in cross-validation.

@@ -3,7 +3,7 @@
 -- -> cimetiere observe (c, rX, rY, nombre de morts). Utilise par l'encadre a l'ecran. Genere par tools/make_evidence_data.py.
 local _, ns = ...
 ns.LAYERS = {
-  ["A:1418:923"] = {c=0,rX=-6291,rY=-3493,n=7},
+  ["A:1418:923"] = {c=0,rX=-6293,rY=-3492,n=11},
   ["A:1424:1680"] = {c=0,rX=-732,rY=-593,n=3},
   ["A:1425:45"] = {c=0,rX=-289,rY=-4374,n=3},
   ["A:1432:11"] = {c=0,rX=-5351,rY=-2882,n=2},
