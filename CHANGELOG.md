@@ -1,3 +1,11 @@
+# 0.4.20
+
+- **Data update: 8,721 real deaths** (164 new since 0.4.19). 98.8% correct in cross-validation.
+- **HORDE / ALLIANCE buttons** at the top of the map menu: your faction is on by default, turn the other one on to see both. The map shows which one you are looking at: **Deathskip view: Alliance**.
+- **ON/OFF button** next to Deathskip in the map menu: hides all of Deathskip on the map in one click, your settings stay as they are.
+- **Classic UnstuckSkips** has its own ON/OFF button, separate from Deathskip's.
+- The green line no longer depends on the hover tooltip: each option now does only what it says.
+
 # 0.4.19
 
 - **Data update: 8,557 real deaths** (308 new since 0.4.18). 98.7% correct in cross-validation.

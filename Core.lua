@@ -1019,6 +1019,7 @@ end
 function Redraw()
     if not WorldMapFrame:IsShown() then return end   -- carte fermee : rien (le calque est cache avec elle)
     local db = DB()
+    if ns.UpdateViewLabel then ns.UpdateViewLabel() end
     local mapID = WorldMapFrame:GetMapID()
     local contID = mapID and mapID ~= AZEROTH and select(3, MapToWorld(mapID, 0.5, 0.5))
     wipe(used)
@@ -1030,7 +1031,7 @@ function Redraw()
     end
     -- rien n'a change (meme carte, meme taille, memes options) : rien a faire
     local w, h = overlay:GetSize()
-    local key = table.concat({mapID, math.floor(w + 0.5), math.floor(h + 0.5), tostring(db.unstuck), tostring(db.oldDeath), tostring(db.death),
+    local key = table.concat({mapID, math.floor(w + 0.5), math.floor(h + 0.5), tostring(db.unstuck), tostring(db.oldDeath), tostring(db.death), tostring(db.mapOff), tostring(db.classicOff),
                               tostring(db.showSubzones), tostring(db.showSplits), tostring(db.showDashed), tostring(db.exactBorders), tostring(db.showMarkers),
                               tostring(db.showDeaths), #Deaths(),
                               tostring(db.markStyle), tostring(db.markSize), tostring(db.markColor), tostring(db.markNames),
@@ -1039,17 +1040,17 @@ function Redraw()
     lastKey = key
     status:SetText("")
     local zoneMap = not CONTINENTS[mapID]
-    if db.unstuck then
+    if db.unstuck and not db.classicOff then
         unstuckCache[contID] = unstuckCache[contID] or {UnstuckData(contID)}
         DrawSet("unstuck", contID, mapID, unstuckCache[contID][1], unstuckCache[contID][2])
         used.unstuck = true
     end
-    if db.oldDeath then
+    if db.oldDeath and not db.classicOff then
         oldDeathCache[contID] = oldDeathCache[contID] or {OldDeathData(contID)}
         DrawSet("olddeath", contID, mapID, oldDeathCache[contID][1], oldDeathCache[contID][2])
         used.olddeath = true
     end
-    if db.death then
+    if db.death and not db.mapOff then
         local data = ViewData(contID)
         if data then
             -- sous-zones officielles (cartes de zone ; sur le continent, ~3000 traits ralentiraient le zoom)
@@ -1394,6 +1395,24 @@ end
 ---------------------------------------------------------------------------
 -- infobulle fixe en haut a gauche de la carte (hors du canevas : pas zoomee avec la carte)
 local mapBox = WorldMapFrame.ScrollContainer or WorldMapFrame
+-- "Deathskip view: Horde" en haut de la carte (factions affichees)
+local viewHolder = CreateFrame("Frame", nil, mapBox)
+viewHolder:SetAllPoints(mapBox)
+viewHolder:SetFrameLevel((mapBox:GetFrameLevel() or 1) + 50)
+local viewLabel = viewHolder:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+viewLabel:SetPoint("TOP", mapBox, "TOP", 0, -10)
+viewLabel:SetShadowOffset(1, -1)
+local function UpdateViewLabel()
+    local db = DB()
+    if db.mapOff or not db.death then viewLabel:Hide() return end
+    local names = {}
+    for _, f in ipairs(ViewFactions()) do
+        names[#names + 1] = f == "Horde" and "|cffff5050Horde|r" or "|cff4da6ffAlliance|r"
+    end
+    viewLabel:SetText(T("Vue Deathskip : ", "Deathskip view: ") .. table.concat(names, " + "))
+    viewLabel:Show()
+end
+ns.UpdateViewLabel = UpdateViewLabel
 local tip = CreateFrame("Frame", nil, mapBox, "BackdropTemplate")
 tip:SetFrameStrata("TOOLTIP")
 tip:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1})
@@ -1420,7 +1439,9 @@ overlay:SetScript("OnUpdate", function(_, elapsed)
     if hoverElapsed < 0.1 then return end
     hoverElapsed = 0
     local db = DB()
-    if not db.death or db.hoverTip == false or not WorldMapFrame:IsShown() or not canvas:IsMouseOver() then hoverText:Hide() return end
+    -- rien a faire seulement si l'infobulle ET le trait vert sont coupes
+    local wantTip, wantLine = db.hoverTip ~= false, db.hoverLine ~= false
+    if not db.death or db.mapOff or not (wantTip or wantLine) or not WorldMapFrame:IsShown() or not canvas:IsMouseOver() then hoverText:Hide() return end
     -- taille responsive : proportionnelle a la largeur de la carte (pleine carte ~1500 px = taille choisie)
     local mw = mapBox:GetWidth() or 1500
     local want = math.floor((db.tipSize or 17) * math.max(0.55, math.min(1, mw / 1500)) + 0.5)
@@ -1459,20 +1480,26 @@ overlay:SetScript("OnUpdate", function(_, elapsed)
     if not g then hoverText:Hide() return end
     local w, h = overlay:GetSize()
     local _, subName = GridArea(contID, X, Y)
-    hoverText:SetText(fmt("|cffffd100%s|r\n%s", subName or "?", table.concat(lines, "\n")))
-    hoverText:Show()
-    local pad = math.max(8, tipFontSize * 0.6)
-    hoverText:ClearAllPoints()
-    hoverText:SetPoint("TOPLEFT", pad * 0.7, -pad * 0.5)
-    tip:SetSize(hoverText:GetStringWidth() + pad * 1.4, hoverText:GetStringHeight() + pad)
-    tip:ClearAllPoints()
-    tip:SetPoint("TOPLEFT", mapBox, "TOPLEFT", 44, -10)
-    tip:Show()
+    if wantTip then
+        hoverText:SetText(fmt("|cffffd100%s|r\n%s", subName or "?", table.concat(lines, "\n")))
+        hoverText:Show()
+        local pad = math.max(8, tipFontSize * 0.6)
+        hoverText:ClearAllPoints()
+        hoverText:SetPoint("TOPLEFT", pad * 0.7, -pad * 0.5)
+        tip:SetSize(hoverText:GetStringWidth() + pad * 1.4, hoverText:GetStringHeight() + pad)
+        tip:ClearAllPoints()
+        tip:SetPoint("TOPLEFT", mapBox, "TOPLEFT", 44, -10)
+        tip:Show()
+    else
+        -- infobulle coupee : on la vide sans appeler hoverText:Hide (qui cacherait aussi le trait vert)
+        hoverText:SetText("")
+        tip:Hide()
+    end
     -- trait vert du curseur jusqu'a l'esprit guerisseur ou l'on reapparaitrait
     local gx, gy = WorldToMap(contID, g.X, g.Y, mapID)
     local cx, cy, dx, dy
     if gx then cx, cy, dx, dy = Clip(u, v, gx, gy) end
-    if cx and db.hoverLine ~= false then
+    if cx and wantLine then
         hoverLine:SetStartPoint("TOPLEFT", overlay, cx * w, -cy * h)
         hoverLine:SetEndPoint("TOPLEFT", overlay, dx * w, -dy * h)
         hoverLine:Show()
@@ -1978,6 +2005,27 @@ mIcon:SetPoint("TOPLEFT", 12, -10)
 local mTitle = menu:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 mTitle:SetPoint("LEFT", mIcon, "RIGHT", 6, 0)
 mTitle:SetText("Deathskip")
+-- bouton ON/OFF : tout Deathskip sur la carte d'un clic (lignes, cimetieres, survol), reglages gardes
+local onOff = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+onOff:SetSize(56, 22)
+onOff:SetPoint("TOPRIGHT", -12, -10)
+local function PaintOnOff()
+    onOff:SetText(DB().mapOff and "|cffff5050OFF|r" or "|cff40ff40ON|r")
+end
+onOff:SetScript("OnClick", function()
+    local db = DB()
+    db.mapOff = (not db.mapOff) or nil
+    if mapMenuRefresh then mapMenuRefresh() end
+    Redraw()
+end)
+onOff:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(T("Deathskip sur la carte", "Deathskip on the map"))
+    GameTooltip:AddLine(T("OFF : les lignes, cimetières et le survol de Deathskip disparaissent (pas l'UnstuckSkips Classic). Vos réglages restent tels quels.",
+                          "OFF: Deathskip's lines, graveyards and hover go away (not the Classic UnstuckSkips). Your settings stay as they are."), 1, 1, 1, true)
+    GameTooltip:Show()
+end)
+onOff:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 -- rubriques et cases (libelle, explication au survol, lire, ecrire)
 local menuSections = {
@@ -2006,7 +2054,7 @@ local menuSections = {
          function() return DB().showDeaths and true or false end, function(v) DB().showDeaths = v end},
     }},
     -- ... et une rubrique a part, grisee : les donnees de l'addon Classic d'origine
-    {T("UnstuckSkips Classic (non vérifié sur Forever)", "Classic UnstuckSkips (not checked on Forever)"), {
+    {T("UnstuckSkips Classic", "Classic UnstuckSkips"), {
         {T("Anciens unstucks (rouge)", "Old unstucks (red)"), T("Les lignes d'unstuck de l'UnstuckSkips Classic d'origine.", "The unstuck lines of the original Classic UnstuckSkips."),
          function() return DB().unstuck and true or false end, function(v) DB().unstuck = v end},
         {T("Anciens deathskips (violet)", "Old deathskips (purple)"), T("Les lignes de deathskips de l'UnstuckSkips Classic d'origine. Sur Forever, ce sont les lignes Deathskip qui comptent.", "The deathskip lines of the original Classic UnstuckSkips. On Forever, the Deathskip lines are the ones that count."),
@@ -2015,7 +2063,54 @@ local menuSections = {
 }
 
 local menuChecks = {}
-local my = -40
+-- factions : sa faction allumee par defaut, l'autre a la main ; au moins une des deux
+local function FactionOn(f)
+    for _, x in ipairs(ViewFactions()) do if x == f then return true end end
+    return false
+end
+local function SetFactions(horde, alliance)
+    if not horde and not alliance then return end            -- jamais aucune
+    local mine = UnitFactionGroup("player") or "Alliance"
+    local mineOn = (mine == "Horde") and horde or alliance
+    local otherOn = (mine == "Horde") and alliance or horde
+    DB().viewFaction = (mineOn and otherOn) and "both" or (otherOn and "other" or nil)
+end
+local facButtons = {}
+local function FacButton(f, label, x)
+    local b = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+    b:SetSize((MENU_W - 32) / 2, 22)
+    b:SetPoint("TOPLEFT", x, -38)
+    b.faction, b.label = f, label
+    b:SetScript("OnClick", function()
+        local h, a = FactionOn("Horde"), FactionOn("Alliance")
+        if f == "Horde" then h = not h else a = not a end
+        SetFactions(h, a)
+        if mapMenuRefresh then mapMenuRefresh() end
+        Redraw()
+    end)
+    b:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(label)
+        GameTooltip:AddLine(T("Affiche les cimetières et réapparitions de cette faction. Les deux peuvent être allumées.",
+                              "Shows this faction's graveyards and respawns. Both can be on."), 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    facButtons[#facButtons + 1] = b
+end
+FacButton("Horde", "HORDE", 12)
+FacButton("Alliance", "ALLIANCE", 12 + (MENU_W - 32) / 2 + 8)
+local function PaintFactions()
+    for _, b in ipairs(facButtons) do
+        local on = FactionOn(b.faction)
+        local col = b.faction == "Horde" and (on and "ff5050" or "804040") or (on and "4da6ff" or "40607f")
+        b:SetText("|cff" .. col .. b.label .. "|r")
+        if on then b:LockHighlight() else b:UnlockHighlight() end
+        b:SetAlpha(on and 1 or 0.55)
+    end
+end
+
+local my = -68
 for _, sec in ipairs(menuSections) do
     if sec[3] then
         -- separation nette : un trait sur toute la largeur et un titre gris, plus petit
@@ -2027,15 +2122,37 @@ for _, sec in ipairs(menuSections) do
         sep:SetPoint("TOPRIGHT", -8, my)
         my = my - 8
     end
-    local h = menu:CreateFontString(nil, "ARTWORK", sec[3] and "GameFontDisableSmall" or "GameFontNormal")
-    h:SetPoint("TOPLEFT", 14, my)
+    local h = menu:CreateFontString(nil, "ARTWORK", sec[3] and "GameFontNormalLarge" or "GameFontNormal")
+    h:SetPoint("TOPLEFT", sec[3] and 12 or 14, my)
     h:SetText(sec[1])
+    if sec[3] then
+        -- son propre ON/OFF : seulement les calques de l'UnstuckSkips Classic
+        local b = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
+        b:SetSize(56, 22)
+        b:SetPoint("TOPRIGHT", -12, my + 3)
+        b:SetScript("OnClick", function()
+            local db = DB()
+            db.classicOff = (not db.classicOff) or nil
+            if mapMenuRefresh then mapMenuRefresh() end
+            Redraw()
+        end)
+        b:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(T("UnstuckSkips Classic sur la carte", "Classic UnstuckSkips on the map"))
+            GameTooltip:AddLine(T("OFF : les anciens unstucks et deathskips disparaissent. Vos cases restent telles quelles.",
+                                  "OFF: the old unstucks and deathskips go away. Your boxes stay as they are."), 1, 1, 1, true)
+            GameTooltip:Show()
+        end)
+        b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        menu.classicOnOff = b
+    end
     local line = menu:CreateTexture(nil, "ARTWORK")
     line:SetColorTexture(0.85, 0.68, 0.25, 0.45)
     line:SetHeight(1)
-    line:SetPoint("TOPLEFT", 14, my - 15)
-    line:SetPoint("TOPRIGHT", -14, my - 15)
-    my = my - 20
+    local lineY = sec[3] and (my - 20) or (my - 15)
+    line:SetPoint("TOPLEFT", 14, lineY)
+    line:SetPoint("TOPRIGHT", -14, lineY)
+    my = my - (sec[3] and 26 or 20)
     for _, it in ipairs(sec[2]) do
         local cb = CreateFrame("CheckButton", nil, menu, "UICheckButtonTemplate")
         cb:SetSize(24, 24)
@@ -2045,6 +2162,7 @@ for _, sec in ipairs(menuSections) do
         fs:SetText(it[1])
         cb:SetHitRectInsets(0, -(MENU_W - 60), 0, 0)   -- le libelle est cliquable aussi
         cb.get = it[3]
+        cb.classic = sec[3] and true or nil
         cb:SetScript("OnClick", function(self)
             it[4](self:GetChecked() and true or false)
             Redraw()
@@ -2070,7 +2188,17 @@ more:SetScript("OnClick", function() menu:Hide(); if ns.OpenOptions then ns.Open
 menu:SetSize(MENU_W, -my + 36)
 
 mapMenuRefresh = function()
-    for _, cb in ipairs(menuChecks) do cb:SetChecked(cb.get()) end
+    local db = DB()
+    PaintOnOff()
+    PaintFactions()
+    if menu.classicOnOff then
+        menu.classicOnOff:SetText(db.classicOff and "|cffff5050OFF|r" or "|cff40ff40ON|r")
+    end
+    for _, cb in ipairs(menuChecks) do
+        cb:SetChecked(cb.get())
+        local off = cb.classic and db.classicOff or (not cb.classic and db.mapOff)
+        cb:SetAlpha(off and 0.4 or 1)      -- grisees quand leur interrupteur est sur OFF
+    end
 end
 menu:SetScript("OnShow", mapMenuRefresh)
 menuBtn:SetScript("OnClick", function() menu:SetShown(not menu:IsShown()) end)
