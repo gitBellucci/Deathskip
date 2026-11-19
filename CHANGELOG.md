@@ -1,3 +1,8 @@
+# 0.4.18
+
+- **Data update: 8,249 real deaths** (599 new since 0.4.17). 98.8% correct in cross-validation.
+- New **Show on the map** switch, in the Deathskip menu on the world map and in the options: untick it to hide everything Deathskip draws on the map, tick it to bring it back.
+
 # 0.4.17
 
 - **Data update: 7,650 real deaths** (733 new since 0.4.16). 98.7% correct in cross-validation.

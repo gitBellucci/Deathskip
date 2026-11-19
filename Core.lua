@@ -1012,6 +1012,13 @@ function Redraw()
     local mapID = WorldMapFrame:GetMapID()
     local contID = mapID and mapID ~= AZEROTH and select(3, MapToWorld(mapID, 0.5, 0.5))
     wipe(used)
+    -- affichage de l'addon coupe (menu de la carte ou options) : plus rien sur la carte
+    if db.mapOff then
+        status:SetText("")
+        HideUnused()
+        lastKey = nil
+        return
+    end
     if contID ~= 0 and contID ~= 1 then
         status:SetText("")
         HideUnused()
@@ -1396,7 +1403,7 @@ overlay:SetScript("OnUpdate", function(_, elapsed)
     if hoverElapsed < 0.1 then return end
     hoverElapsed = 0
     local db = DB()
-    if not db.death or db.hoverTip == false or not WorldMapFrame:IsShown() or not canvas:IsMouseOver() then hoverText:Hide() return end
+    if not db.death or db.mapOff or db.hoverTip == false or not WorldMapFrame:IsShown() or not canvas:IsMouseOver() then hoverText:Hide() return end
     -- taille responsive : proportionnelle a la largeur de la carte (pleine carte ~1500 px = taille choisie)
     local mw = mapBox:GetWidth() or 1500
     local want = math.floor((db.tipSize or 17) * math.max(0.55, math.min(1, mw / 1500)) + 0.5)
@@ -1826,6 +1833,8 @@ facNote:SetText(T("cimetières et réapparitions de la faction choisie (survol :
                   "graveyards and respawns of the chosen faction (hover: one line per faction)"))
 y = y - 28
 Header(y, T("Carte", "Map")); y = y - 22
+Check(y, T("Afficher Deathskip sur la carte", "Show Deathskip on the map"), T("décoché : rien sur la carte (lignes, cimetières, survol)", "unticked: nothing on the map (lines, graveyards, hover)"),
+      function() return not DB().mapOff end, function(v) DB().mapOff = (not v) or nil end); y = y - 28
 Check(y, T("Contours des sous-zones", "Subzone borders"), T("plein : le cimetière change ; pointillés : même cimetière", "solid: graveyard changes; dashed: same graveyard"),
       function() return DB().showSubzones ~= false end, function(v) DB().showSubzones = v end); y = y - 28
 Check(y, T("Bordures sans effet", "Borders with no effect"), T("pointillés : même cimetière des deux côtés", "dashed: same graveyard on both sides"),
@@ -1943,6 +1952,7 @@ menu:SetFrameLevel(510)
 menu:Hide()
 
 local menuItems = {
+    {T("Afficher sur la carte", "Show on the map"), function() return not DB().mapOff end, function(v) DB().mapOff = (not v) or nil end},
     {T("Contours des sous-zones", "Subzone borders"), function() return DB().showSubzones ~= false end, function(v) DB().showSubzones = v end},
     {T("Bordures sans effet (pointillés)", "No-effect borders (dashed)"), function() return DB().showDashed ~= false end, function(v) DB().showDashed = v end},
     {T("Bordures exactes (cases)", "Exact borders (squares)"), function() return DB().exactBorders and true or false end, function(v) DB().exactBorders = v end},
