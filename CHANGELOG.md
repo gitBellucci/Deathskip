@@ -1,3 +1,11 @@
+# 0.4.21
+
+- **HORDE / ALLIANCE buttons fixed:** on a Horde character you could not turn a faction off. Each button now turns on and off as expected.
+- **Clearer buttons:** flat style with the faction logo, colored when on, grey when off.
+- **All recorded deaths are shown:** the blue dots stopped at 2,500 per continent, so whole areas looked empty. All 8,721 now show.
+- **Blue dots follow the view:** they show the deaths of the factions you picked with HORDE / ALLIANCE, not only your character's.
+- The faction choice now lives only in the map menu (removed from the options page to avoid two places for one setting).
+
 # 0.4.20
 
 - **Data update: 8,721 real deaths** (164 new since 0.4.19). 98.8% correct in cross-validation.

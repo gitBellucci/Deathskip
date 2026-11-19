@@ -38,7 +38,7 @@ _Eastern Plaguelands: dying at Lake Mereldar sends you to Darrowshire. Solid bor
 
 ### ![](https://i.imgur.com/9axmVJG.png) ___**Alliance, Horde or both**___
 
-You see your own faction by default, and it follows you when you switch between Alliance and Horde characters. Switch to the other faction or to both: the tooltip then gives one respawn line per faction. Neutral graveyards like Ratchet serve both.
+You see your own faction by default, and it follows you when you switch between Alliance and Horde characters. Use the **HORDE / ALLIANCE** buttons in the map menu to switch to the other faction or to both: the tooltip then gives one respawn line per faction, and the map shows **Deathskip view: Alliance + Horde**. Neutral graveyards like Ratchet serve both.
 
 ### ![](https://i.imgur.com/Q4ZUBcb.png) ___**Options right on the map**___
 
@@ -69,7 +69,7 @@ When you die and release your spirit, the addon notes where you died and where y
 
 *   **Shared:** death and respawn positions, logout and login positions when your character was moved, continent, zone, subzone, faction, date.
 *   **Never shared:** character names, guild, or anything else about you.
-*   Off anytime in the options or with `/usf share`. Recorded deaths can be shown as blue dots (off by default).
+*   Off anytime in the options or with `/usf share`. Recorded deaths can be shown as blue dots for the factions you view (off by default).
 
 ### ![](https://i.imgur.com/9oAoZGo.png) ___**Commands**___
 

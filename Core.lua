@@ -1093,10 +1093,11 @@ function Redraw()
             -- morts reelles (points bleus) : celles livrees avec l'addon (Data/evidence.lua), les memes pour tous ;
             -- pas celles recues en direct sur ce PC. Seulement si l'option est cochee (desactivee par defaut)
             if db.showDeaths then
-                local f = UnitFactionGroup("player") == "Horde" and "H" or "A"
+                local want = {}
+                for _, fac in ipairs(ViewFactions()) do want[fac == "Horde" and "H" or "A"] = true end
                 local k = 0
                 for _, r in ipairs(Deaths()) do
-                    if r.c == contID and r.f == f and k < 2500 then
+                    if r.c == contID and want[r.f] and k < 20000 then
                         local x, y = WorldToMap(contID, r.X, r.Y, mapID)
                         if x and x >= 0 and x <= 1 and y >= 0 and y <= 1 then
                             k = k + 1
@@ -1858,24 +1859,6 @@ local function Choice(yy, label, opts, key, default, getter, setter)
 end
 
 local y = -64
-Header(y, T("Faction", "Faction")); y = y - 24
-local function FacLabel(f, name)
-    return function()
-        return name .. ((UnitFactionGroup("player") == f) and T(" (vous)", " (you)") or "")
-    end
-end
-Choice(y, T("Afficher :", "Show:"), {{"Alliance", FacLabel("Alliance", "Alliance"), 120}, {"Horde", FacLabel("Horde", "Horde"), 120},
-                                     {"both", T("Les deux", "Both"), 100}}, "viewFaction", nil, ViewSelection,
-       function(v)
-           local mine = UnitFactionGroup("player")
-           DB().viewFaction = (v == "both") and "both" or ((v == mine) and nil or "other")
-       end)
-y = y - 26
-local facNote = content:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-facNote:SetPoint("TOPLEFT", 150, y)
-facNote:SetText(T("cimetières et réapparitions de la faction choisie (survol : une ligne par faction)",
-                  "graveyards and respawns of the chosen faction (hover: one line per faction)"))
-y = y - 28
 Header(y, T("Carte", "Map")); y = y - 22
 Check(y, T("Contours des sous-zones", "Subzone borders"), T("plein : le cimetière change ; pointillés : même cimetière", "solid: graveyard changes; dashed: same graveyard"),
       function() return DB().showSubzones ~= false end, function(v) DB().showSubzones = v end); y = y - 28
@@ -2071,15 +2054,28 @@ end
 local function SetFactions(horde, alliance)
     if not horde and not alliance then return end            -- jamais aucune
     local mine = UnitFactionGroup("player") or "Alliance"
-    local mineOn = (mine == "Horde") and horde or alliance
-    local otherOn = (mine == "Horde") and alliance or horde
+    local mineOn, otherOn
+    if mine == "Horde" then mineOn, otherOn = horde, alliance else mineOn, otherOn = alliance, horde end
     DB().viewFaction = (mineOn and otherOn) and "both" or (otherOn and "other" or nil)
 end
 local facButtons = {}
 local function FacButton(f, label, x)
-    local b = CreateFrame("Button", nil, menu, "UIPanelButtonTemplate")
-    b:SetSize((MENU_W - 32) / 2, 22)
+    -- bouton plat : fond couleur de faction, logo, texte blanc ; gris quand eteint
+    local b = CreateFrame("Button", nil, menu, "BackdropTemplate")
+    b:SetSize((MENU_W - 32) / 2, 24)
     b:SetPoint("TOPLEFT", x, -38)
+    b:SetBackdrop({bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1})
+    b.icon = b:CreateTexture(nil, "ARTWORK")
+    b.icon:SetSize(18, 18)
+    b.icon:SetTexture(f == "Horde" and "Interface\\FriendsFrame\\PlusManz-Horde" or "Interface\\FriendsFrame\\PlusManz-Alliance")
+    b.text = b:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    b.text:SetText(label)
+    b.text:SetPoint("CENTER", 10, 0)
+    b.icon:SetPoint("RIGHT", b.text, "LEFT", -4, 0)
+    local hl = b:CreateTexture(nil, "HIGHLIGHT")
+    hl:SetColorTexture(1, 1, 1, 0.08)
+    hl:SetPoint("TOPLEFT", 1, -1)
+    hl:SetPoint("BOTTOMRIGHT", -1, 1)
     b.faction, b.label = f, label
     b:SetScript("OnClick", function()
         local h, a = FactionOn("Horde"), FactionOn("Alliance")
@@ -2103,10 +2099,24 @@ FacButton("Alliance", "ALLIANCE", 12 + (MENU_W - 32) / 2 + 8)
 local function PaintFactions()
     for _, b in ipairs(facButtons) do
         local on = FactionOn(b.faction)
-        local col = b.faction == "Horde" and (on and "ff5050" or "804040") or (on and "4da6ff" or "40607f")
-        b:SetText("|cff" .. col .. b.label .. "|r")
-        if on then b:LockHighlight() else b:UnlockHighlight() end
-        b:SetAlpha(on and 1 or 0.55)
+        if on then
+            if b.faction == "Horde" then
+                b:SetBackdropColor(0.55, 0.06, 0.06, 0.25)
+                b:SetBackdropBorderColor(1, 0.35, 0.3, 1)
+            else
+                b:SetBackdropColor(0.06, 0.2, 0.55, 0.25)
+                b:SetBackdropBorderColor(0.4, 0.7, 1, 1)
+            end
+            b.text:SetTextColor(1, 1, 1)
+            b.icon:SetDesaturated(false)
+            b.icon:SetAlpha(1)
+        else
+            b:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
+            b:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
+            b.text:SetTextColor(0.5, 0.5, 0.5)
+            b.icon:SetDesaturated(true)
+            b.icon:SetAlpha(0.5)
+        end
     end
 end
 
