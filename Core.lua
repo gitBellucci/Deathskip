@@ -688,6 +688,8 @@ local pools = {unstuck = {lines = {}, marks = {}}, olddeath = {lines = {}, marks
                arrows = {lines = {}, marks = {}}}
 COLORS.arrows = {1, 0.85, 0.3, 0.55}
 pools.subz = {lines = {}, marks = {}}
+pools.caves = {lines = {}, marks = {}}
+COLORS.caves = {1, 0.55, 0.1, 0.95}   -- orange : grotte / tunnel au cimetiere different de la surface
 COLORS.subz = {1, 1, 1, 0.75}
 COLORS.subzd = {1, 1, 1, 0.5}
 pools.splits = {lines = {}, marks = {}}
@@ -728,12 +730,39 @@ function ns.Evidence(contID, X, Y, faction)
 end
 ns.OnSharedDeath = function() end
 
+-- epaisseur a l'ecran jamais sous MIN_PX pixels (dezoome, le canevas est reduit : un trait trop fin disparait en partie)
+local MIN_PX = 1.3
+local function CanvasScale()
+    local sc = WorldMapFrame.ScrollContainer
+    local ok, v = pcall(function() return sc and sc.GetCanvasScale and sc:GetCanvasScale() end)
+    return (ok and type(v) == "number" and v > 0) and v or 1
+end
+-- au-dela de ZMAX (grossissement maximal de la carte Blizzard ; OpenMap va bien plus loin), les tailles en unites de
+-- carte sont reduites d'autant : a l'ecran, traits, croix, points et noms ne grossissent plus
+local ZMAX = 2.5
+local function SizeK()
+    local sc = CanvasScale()
+    return sc > ZMAX and ZMAX / sc or 1
+end
+local function EffThick(t)
+    return math.max((t or 2) * SizeK(), MIN_PX / CanvasScale())
+end
+-- marge de dessin autour de la carte : 0 (Blizzard coupe au bord), plus avec OpenMap (la vue deborde sur les voisines)
+local function OpenMapOn()
+    local f = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded
+    return f and f("OpenMap") and true or false
+end
+local function Margin() return OpenMapOn() and 0.6 or 0 end
+local function InView(x, y)
+    local m = Margin()
+    return x and x >= -m and x <= 1 + m and y >= -m and y <= 1 + m
+end
 local function PoolLine(kind, i)
     local p = pools[kind].lines
     if not p[i] then
         local l = overlay:CreateLine(nil, "OVERLAY")
         l:SetTexture("interface/buttons/white8x8")
-        l:SetThickness(pools[kind].thick or 2)
+        l:SetThickness(pools[kind].applied or EffThick(pools[kind].thick))
         l:SetVertexColor(unpack(COLORS[kind]))
         p[i] = l
     end
@@ -744,7 +773,7 @@ end
 local MARK_COLORS = {red = {1, 0.15, 0.15}, white = {1, 1, 1}, yellow = {1, 0.85, 0.1}, green = {0.3, 1, 0.3}, blue = {0.3, 0.75, 1}}
 local function StyleMark(t)
     local db = DB()
-    local size = db.markSize or 11
+    local size = (db.markSize or 11) * SizeK()
     local atlasOK = db.markStyle == "healer" and t.SetAtlas and C_Texture and C_Texture.GetAtlasInfo
                     and C_Texture.GetAtlasInfo("poi-graveyard-neutral")
     if atlasOK then
@@ -784,6 +813,8 @@ local function PoolName(i)
     local p = pools.names.marks
     if not p[i] then
         local fs = overlay:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        fs.baseFont, fs.baseSize, fs.baseFlags = fs:GetFont()
+        if fs.baseFont then fs:SetFont(fs.baseFont, math.max(1, fs.baseSize * SizeK()), fs.baseFlags) end
         fs:SetShadowOffset(1, -1)
         fs:SetShadowColor(0, 0, 0, 1)
         p[i] = fs
@@ -796,7 +827,7 @@ local function PoolDot(i)
     if not p[i] then
         local t = overlay:CreateTexture(nil, "OVERLAY", nil, 5)
         t:SetTexture("interface/buttons/white8x8")
-        t:SetSize(4, 4)
+        t:SetSize(4 * SizeK(), 4 * SizeK())
         t:SetVertexColor(0.3, 0.8, 1, 0.9)
         p[i] = t
     end
@@ -828,12 +859,14 @@ local function edge(pp, q, t0, t1)
     end
     return t0, t1
 end
+local clipMargin = 0
 local function Clip(ax, ay, bx, by)
     local dx, dy = bx - ax, by - ay
-    local t0, t1 = edge(-dx, ax, 0, 1);      if not t0 then return nil end
-    t0, t1 = edge(dx, 1 - ax, t0, t1);       if not t0 then return nil end
-    t0, t1 = edge(-dy, ay, t0, t1);          if not t0 then return nil end
-    t0, t1 = edge(dy, 1 - ay, t0, t1);       if not t0 then return nil end
+    local m = clipMargin
+    local t0, t1 = edge(-dx, ax + m, 0, 1);  if not t0 then return nil end
+    t0, t1 = edge(dx, 1 + m - ax, t0, t1);   if not t0 then return nil end
+    t0, t1 = edge(-dy, ay + m, t0, t1);      if not t0 then return nil end
+    t0, t1 = edge(dy, 1 + m - ay, t0, t1);   if not t0 then return nil end
     return ax + t0 * dx, ay + t0 * dy, ax + t1 * dx, ay + t1 * dy
 end
 
@@ -843,7 +876,8 @@ local normCache = {}
 local function Normalized(kind, contID, mapID, segs, marks)
     local byKind = normCache[kind]
     if not byKind then byKind = {}; normCache[kind] = byKind end
-    local key = mapID .. tostring(segs) .. tostring(marks)
+    clipMargin = (kind == "subzd") and 0 or Margin()    -- pointilles : jamais de marge (trop nombreux)
+    local key = mapID .. tostring(segs) .. tostring(marks) .. ":" .. clipMargin
     local c = byKind[key]
     if c then return c end
     local L, M = {}, {}
@@ -860,7 +894,7 @@ local function Normalized(kind, contID, mapID, segs, marks)
     end
     for _, g in ipairs(marks) do
         local x, y = WorldToMap(contID, g[1], g[2], mapID)
-        if x and x >= 0 and x <= 1 and y >= 0 and y <= 1 then
+        if InView(x, y) then
             M[#M + 1], M[#M + 2] = x, y
         end
     end
@@ -874,7 +908,8 @@ local function DrawSet(kind, contID, mapID, segs, marks, thick)
     local p = pools[kind]
     if thick and p.thick ~= thick then
         p.thick = thick
-        for _, l in ipairs(p.lines) do l:SetThickness(thick) end
+        p.applied = math.floor(EffThick(thick) * 20 + 0.5) / 20
+        for _, l in ipairs(p.lines) do l:SetThickness(p.applied) end
     end
     local w, h = overlay:GetSize()
     local L, M = c[1], c[2]
@@ -897,13 +932,59 @@ local function DrawSet(kind, contID, mapID, segs, marks, thick)
     Finish(kind, n, k)
 end
 
+-- zoom change : epaisseurs et tailles remises UNE fois, apres le zoom, et seulement si elles changent vraiment
+local lastScale
+local appliedK
+local function Q(v) return math.floor(v * 20 + 0.5) / 20 end   -- arrondi au 1/20 : evite les mises a jour inutiles
+local function RefreshThickness()
+    local sc = CanvasScale()
+    if sc == lastScale then return end
+    lastScale = sc
+    for _, p in pairs(pools) do
+        if p.lines and #p.lines > 0 then
+            local t = Q(EffThick(p.thick))
+            if p.applied ~= t then
+                p.applied = t
+                for _, l in ipairs(p.lines) do l:SetThickness(t) end
+            end
+        end
+    end
+    -- croix, points bleus, noms, trait vert : taille a l'ecran bornee (zoom profond d'OpenMap)
+    local k = Q(SizeK())
+    if k ~= appliedK then
+        appliedK = k
+        local size = (DB().markSize or 11) * k
+        local big = DB().markStyle == "healer" and size * 1.4 or size
+        for _, t in ipairs(pools.death.marks) do t:SetSize(big, big) end
+        for _, t in ipairs(pools.dots.marks) do t:SetSize(4 * k, 4 * k) end
+        for _, fs in ipairs(pools.names.marks) do
+            if fs.baseFont then fs:SetFont(fs.baseFont, math.max(1, fs.baseSize * k), fs.baseFlags) end
+        end
+        if ns.hoverLine then ns.hoverLine:SetThickness(EffThick(2)) end
+    end
+end
+-- pendant l'animation de zoom : rien ; 0,15 s apres le dernier changement : une mise a jour
+local zoomToken = 0
+local function ScheduleRefresh()
+    zoomToken = zoomToken + 1
+    local my = zoomToken
+    C_Timer.After(0.15, function() if my == zoomToken then RefreshThickness() end end)
+end
+if WorldMapFrame.ScrollContainer then
+    pcall(hooksecurefunc, WorldMapFrame, "OnCanvasScaleChanged", ScheduleRefresh)
+end
+-- filet de securite (si le crochet ne se declenche pas) : controle leger, sans rien toucher si l'echelle est la meme
+C_Timer.NewTicker(0.5, function() if WorldMapFrame:IsShown() then RefreshThickness() end end)
+WorldMapFrame:HookScript("OnShow", function() lastScale = nil; C_Timer.After(0, RefreshThickness) end)
+
 local DASH, GAPLEN = 6, 5
 local function DrawDashed(kind, contID, mapID, segs, thick)
     local c = Normalized(kind, contID, mapID, segs or EMPTY, EMPTY)
     local p = pools[kind]
     if thick and p.thick ~= thick then
         p.thick = thick
-        for _, l in ipairs(p.lines) do l:SetThickness(thick) end
+        p.applied = math.floor(EffThick(thick) * 20 + 0.5) / 20
+        for _, l in ipairs(p.lines) do l:SetThickness(p.applied) end
     end
     local w, h = overlay:GetSize()
     local L = c[1]
@@ -980,7 +1061,7 @@ local function WithExact(d, contID, faction)
         -- rouge (partage au plus proche) : la vraie frontiere est la mediatrice entre les deux cimetieres, une ligne
         -- droite (le serveur mesure la distance depuis la position exacte) -> lignes lissees, pas les escaliers.
         -- blanc (bords de sous-zones) : escaliers exacts des cases
-        m = {base = d, gys = d.gys, splits = d.splits, solid = x.solid, dash = x.dash}
+        m = {base = d, gys = d.gys, splits = d.splits, solid = x.solid, dash = x.dash, caves = d.caves}
         exactMerged[key] = m
     end
     return m
@@ -1004,7 +1085,7 @@ local function ViewData(contID)
         for _, sg in ipairs(d.solid or EMPTY) do solid[#solid + 1] = sg end
         for _, sg in ipairs(d.dash or EMPTY) do dash[#dash + 1] = sg end
     end
-    combined[key] = {gys = gys, splits = splits, solid = solid, dash = dash}
+    combined[key] = {gys = gys, splits = splits, solid = solid, dash = dash, caves = a.caves or h.caves}
     return combined[key]
 end
 
@@ -1055,10 +1136,15 @@ function Redraw()
         if data then
             -- sous-zones officielles (cartes de zone ; sur le continent, ~3000 traits ralentiraient le zoom)
             -- plein : le cimetiere change de part et d'autre ; pointilles : frontiere sans effet sur le cimetiere
-            if zoneMap and db.showSubzones ~= false then
-                DrawSet("subz", contID, mapID, data.solid or EMPTY, EMPTY, 1.5)
+            if db.showSubzones ~= false then
+                -- continent : seulement les contours pleins (~500-600 traits), plus fins ; zones : pleins + pointilles
+                DrawSet("subz", contID, mapID, data.solid or EMPTY, EMPTY, zoneMap and 1.5 or 1.1)
                 used.subz = true
-                if db.showDashed ~= false then   -- bordures sans effet (option, affichees par defaut)
+                if data.caves and #data.caves > 0 then
+                    DrawSet("caves", contID, mapID, data.caves, EMPTY, zoneMap and 2 or 1.4)
+                    used.caves = true
+                end
+                if zoneMap and db.showDashed ~= false then   -- bordures sans effet (option, affichees par defaut)
                     DrawDashed("subzd", contID, mapID, data.dash or EMPTY, 0.8)
                     used.subzd = true
                 end
@@ -1077,12 +1163,12 @@ function Redraw()
                     local k = 0
                     for _, g in ipairs(data.gys) do
                         local x, y = WorldToMap(contID, g[1], g[2], mapID)
-                        if x and x >= 0 and x <= 1 and y >= 0 and y <= 1 then
+                        if InView(x, y) then
                             k = k + 1
                             local fs = PoolName(k)
                             fs:SetText(g[3]:match(",%s*(.+)$") or g[3])
                             fs:ClearAllPoints()
-                            fs:SetPoint("TOP", overlay, "TOPLEFT", x * w, -y * h - (db.markSize or 11) * 0.6)
+                            fs:SetPoint("TOP", overlay, "TOPLEFT", x * w, -y * h - (db.markSize or 11) * 0.6 * SizeK())
                             fs:Show()
                         end
                     end
@@ -1099,7 +1185,7 @@ function Redraw()
                 for _, r in ipairs(Deaths()) do
                     if r.c == contID and want[r.f] and k < 20000 then
                         local x, y = WorldToMap(contID, r.X, r.Y, mapID)
-                        if x and x >= 0 and x <= 1 and y >= 0 and y <= 1 then
+                        if InView(x, y) then
                             k = k + 1
                             local t = PoolDot(k)
                             t:ClearAllPoints()
@@ -1367,13 +1453,26 @@ local function OnGhost()
             local dd = (g.X - X) ^ 2 + (g.Y - Y) ^ 2
             if not bestD or dd < bestD then best, bestD = g, dd end
         end
+        -- + les cimetieres des donnees livrees (dont ceux appris des morts, absents de la liste RXP)
+        local fd = ns.forever_deathskips and ns.forever_deathskips.data
+        for _, fname in ipairs({"Alliance", "Horde"}) do
+            local cd = fd and fd[fname] and fd[fname][contID]
+            for _, g in ipairs(cd and cd.gys or {}) do
+                local dd = (g[1] - X) ^ 2 + (g[2] - Y) ^ 2
+                if not bestD or dd < bestD then best, bestD = {name = g[3], X = g[1], Y = g[2]}, dd end
+            end
+        end
         d.actual = best and best.name
         d.actualDist = bestD and Round(math.sqrt(bestD))
     end
     -- juste si meme nom, ou (prediction par la regle) si le cimetiere predit est la ou on reapparait
-    d.ok = (d.predicted ~= nil and d.predicted == d.actual) or
-               (not d.predictedFromDeaths and d.predictedX ~= nil and X ~= nil and
-                   (d.predictedX - X) ^ 2 + (d.predictedY - Y) ^ 2 < 120 ^ 2)
+    -- juste = le cimetiere predit est la ou on reapparait (moins de 150 m) ; sans position predite : meme nom ET
+    -- cimetiere reel identifie de pres (sinon le nom vient d'un voisin lointain)
+    if d.predictedX ~= nil and X ~= nil then
+        d.ok = (d.predictedX - X) ^ 2 + (d.predictedY - Y) ^ 2 < 150 ^ 2
+    else
+        d.ok = d.predicted ~= nil and d.predicted == d.actual and (d.actualDist or 1e9) < 150
+    end
     local db = DB()
     db.deaths = db.deaths or {}
     table.insert(db.deaths, d)
@@ -1429,7 +1528,8 @@ hoverText:SetPoint("TOPLEFT", 10, -8)
 hoverText:Hide()
 local hoverLine = overlay:CreateLine(nil, "OVERLAY", nil, 6)
 hoverLine:SetTexture("interface/buttons/white8x8")
-hoverLine:SetThickness(2)
+hoverLine:SetThickness(EffThick(2))
+ns.hoverLine = hoverLine
 hoverLine:SetVertexColor(0.4, 1, 0.4, 0.9)
 hoverLine:Hide()
 local lastU, lastV, lastMap
@@ -1454,7 +1554,7 @@ overlay:SetScript("OnUpdate", function(_, elapsed)
     local mapID = WorldMapFrame:GetMapID()
     if not mapID or mapID == AZEROTH or not WorldMapFrame.GetNormalizedCursorPosition then hoverText:Hide() return end
     local u, v = WorldMapFrame:GetNormalizedCursorPosition()
-    if not u or u < 0 or u > 1 or v < 0 or v > 1 then hoverText:Hide() return end
+    if not u or not InView(u, v) then hoverText:Hide() return end   -- (OpenMap : la vue deborde, survol dans la marge aussi)
     if u == lastU and v == lastV and mapID == lastMap then return end
     lastU, lastV, lastMap = u, v, mapID
     local X, Y, contID = MapToWorld(mapID, u, v)

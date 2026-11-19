@@ -12,7 +12,7 @@ _The on-screen box tells you where you'd respawn if you died right now, and foll
 
 The Classic UnstuckSkips assumes you respawn at the nearest graveyard. On Forever that's wrong: die on The Merchant Coast and you wake up in Ratchet, die 100 yards away in The Barrens and you wake up at The Crossroads.
 
-Deathskip reads the game's own subzone borders and real deaths shared by players, and shows you the answer for any spot on the map: **98% correct** on 8,721 real deaths (cross-validation), against 78% for the old Classic rule.
+Deathskip reads the game's own subzone borders and real deaths shared by players, and shows you the answer for any spot on the map: **99% correct** on 10,368 real deaths (cross-validation), against 78% for the old Classic rule.
 
 ![Hover a subzone to see where you respawn](https://i.imgur.com/CJmChIW.png)
 
@@ -45,7 +45,8 @@ You see your own faction by default, and it follows you when you switch between 
 The _Deathskip_ button at the top right of the world map opens a menu of clickable options. Everything else is in _Options > AddOns > Deathskip_ (or type `/usf`):
 
 *   **HORDE / ALLIANCE** buttons to pick the faction you see, and an **ON/OFF** button to hide everything at once
-*   subzone borders, non impacted sub zones (dashed), red splits, graveyard markers, and the old Classic unstucks and deathskips (set apart)
+*   **caves and tunnels** outlined in orange where the respawn differs from the surface (Timbermaw Hold)
+*   subzone borders (also on the continent map), non impacted sub zones (dashed), red splits, graveyard markers, and the old Classic unstucks and deathskips (set apart)
 *   graveyards as a spirit-healer icon or a cross, 4 sizes, 5 colors, with or without names
 *   tooltip on/off, text size, green line
 *   the on-screen box (on by default, close it with its X, bring it back from the map menu): where you are, and the graveyard you'd respawn at if you died there, updated as you walk
@@ -86,6 +87,6 @@ Nothing to do: your death is shared automatically and fixes the next update. To 
 *   Logout skip locations: **Zarant**.
 *   Skip discoveries and research: **Tactics**, **TommySalami**, **Vitochie**.
 *   Map line drawing: **Semlar**.
-*   Client file reader adapted from OpenMap by **jiforever** (MIT). Icons: Lorc, game-icons.net (CC BY 3.0).
+*   Client file reader and cave maps adapted from OpenMap by **jiforever** (MIT). Works side by side with OpenMap. Icons: Lorc, game-icons.net (CC BY 3.0).
 
 [![Join the Deathskip Discord](https://i.imgur.com/W69RzbD.png)](https://discord.gg/BKHgxaatxz)

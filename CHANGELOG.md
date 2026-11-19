@@ -1,3 +1,15 @@
+# 0.4.22
+
+- **Data update: 10,368 real deaths** (1,647 new since 0.4.21, 4,110 Horde). **99% correct** in cross-validation.
+- **Better Horde (and Alliance) predictions:** a graveyard seen by one faction is no longer copied to the other unless both can use it. Fixes Horde spots sent to Southshore or Farholde Keep instead of Tarren Mill or Rog'mar, and Alliance spots sent to The Sepulcher, Stonard or Whispering Forest.
+- A Classic graveyard link that no death ever used is dropped where we have plenty of deaths (Swamp of Sorrows: Alliance now respawn at the Swamp graveyard, not Dreadmaul Hold).
+- **Caves and tunnels:** where the graveyard underground differs from the surface, the cave is treated on its own and outlined in **orange** (Timbermaw Hold: Felwood's Irontree Woods, not Moonglade).
+- **Subzone borders on the continent map** too (the ones where the graveyard changes), plus the edge of the map data at sea.
+- Lines no longer vanish when you zoom out, and zooming is lighter (sizes are updated once, after the zoom).
+- **Works with OpenMap:** lines, icons and names keep their size at its deep zoom and show past the zone's edge when you pan.
+- The "prediction correct / wrong" message after a death now checks the real spot (it could say "correct" with the wrong graveyard name).
+- Graveyards the other faction owns are no longer shown in your view (The Sepulcher in Alliance view).
+
 # 0.4.21
 
 - **HORDE / ALLIANCE buttons fixed:** on a Horde character you could not turn a faction off. Each button now turns on and off as expected.
