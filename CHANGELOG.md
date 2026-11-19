@@ -1,3 +1,7 @@
+# 0.4.17
+
+- **Data update: 7,650 real deaths** (733 new since 0.4.16). 98.7% correct in cross-validation.
+
 # 0.4.16
 
 - **Data update: 6,917 real deaths** (351 new since 0.4.15). 98.8% correct in cross-validation.
