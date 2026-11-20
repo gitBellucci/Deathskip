@@ -1,3 +1,8 @@
+# 0.4.23
+
+- **Data update: 10,978 real deaths** (610 new since 0.4.22, mostly Horde: 4,700 Horde deaths in total). 99% correct in cross-validation.
+- The new deaths were already predicted right 99.3% of the time before being added; they sharpen the Horde side further.
+
 # 0.4.22
 
 - **Data update: 10,368 real deaths** (1,647 new since 0.4.21, 4,110 Horde). **99% correct** in cross-validation.
