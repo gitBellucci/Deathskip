@@ -1,3 +1,8 @@
+# 0.4.24
+
+- **Data update: 11,172 real deaths** (194 new since 0.4.23). **99% correct** in cross-validation (99.2%).
+- **Wetlands fixed:** a large part of the open Wetlands (and its coast) was predicted to send you to Thelsamar (Loch Modan); players there respawn at the Crossroads. A graveyard the zone is not linked to is now dropped when deaths contradict it far more often than they confirm it. Also fixes part of Desolace for the Alliance (Ghost Walker Post, not Evenshade's Overlook).
+
 # 0.4.23
 
 - **Data update: 10,978 real deaths** (610 new since 0.4.22, mostly Horde: 4,700 Horde deaths in total). 99% correct in cross-validation.
