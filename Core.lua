@@ -2051,16 +2051,47 @@ end
 -- Menu sur la carte : bouton en haut a droite + cases cliquables
 ---------------------------------------------------------------------------
 local menuBtn = CreateFrame("Button", nil, WorldMapFrame, "UIPanelButtonTemplate")
-menuBtn:SetSize(120, 20)
+menuBtn:SetSize(30, 30)
+-- onglet-icone : on efface les textures rouges du modele de bouton, puis cadre d'onglet + icone de l'addon
+for _, r in ipairs({ menuBtn:GetRegions() }) do
+    if r.IsObjectType and r:IsObjectType("Texture") then r:SetAlpha(0) end
+end
+do
+    local bg = menuBtn:CreateTexture(nil, "BACKGROUND", nil, 1)
+    bg:SetPoint("TOPLEFT", 2, -2)
+    bg:SetPoint("BOTTOMRIGHT", -2, 2)
+    bg:SetColorTexture(0.05, 0.05, 0.07, 0.9)
+    local icon = menuBtn:CreateTexture(nil, "ARTWORK", nil, 1)
+    icon:SetTexture("Interface\\AddOns\\" .. ADDON .. "\\Media\\icon.tga")
+    icon:SetPoint("TOPLEFT", 3, -3)
+    icon:SetPoint("BOTTOMRIGHT", -3, 3)
+    menuBtn.tabIcon = icon
+    local border = menuBtn:CreateTexture(nil, "OVERLAY", nil, 1)
+    border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+    border:SetPoint("TOPLEFT", -9, 9)
+    border:SetPoint("BOTTOMRIGHT", 9, -9)
+    local hl = menuBtn:CreateTexture(nil, "HIGHLIGHT")
+    hl:SetTexture("Interface\\Buttons\\ButtonHilight-Square")
+    hl:SetBlendMode("ADD")
+    hl:SetPoint("TOPLEFT", 3, -3)
+    hl:SetPoint("BOTTOMRIGHT", -3, 3)
+end
+menuBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
+    GameTooltip:SetText("Deathskip")
+    GameTooltip:AddLine(T("Clic : options de la carte", "Click: map options"), 1, 1, 1)
+    GameTooltip:Show()
+end)
+menuBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -60)
 menuBtn:SetFrameStrata("DIALOG")
 menuBtn:SetFrameLevel(500)
-menuBtn:SetText("Deathskip")
+menuBtn:SetText("")
 -- avec l'addon UnstuckSkips original (SeargentFish) : ses boutons "Show UnstuckSkips" / "Show DeathSkips" sont au
 -- meme endroit (-60, -60 et -60, -82) ; le notre se met a leur gauche pour ne pas les recouvrir
 -- version reduite : une simple icone a la meme place
 local miniBtn = CreateFrame("Button", nil, WorldMapFrame)
-miniBtn:SetSize(20, 20)
+miniBtn:SetSize(18, 18)
 miniBtn:SetFrameStrata("DIALOG")
 miniBtn:SetFrameLevel(500)
 miniBtn.icon = miniBtn:CreateTexture(nil, "ARTWORK")
@@ -2070,16 +2101,16 @@ miniBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
 miniBtn:Hide()
 -- bouton "-" a gauche du bouton Deathskip
 local minBtn = CreateFrame("Button", nil, menuBtn)
-minBtn:SetSize(16, 16)
+minBtn:SetSize(14, 14)
 minBtn:SetPoint("RIGHT", menuBtn, "LEFT", -2, 0)
 minBtn:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
 minBtn:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
 minBtn:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
 
 local function ApplyMapBtnMin()
-    local min = DB().mapBtnMin
-    menuBtn:SetShown(not min)
-    miniBtn:SetShown(min and true or false)
+    menuBtn:Show()
+    miniBtn:Hide()
+    minBtn:Hide()
 end
 local function PlaceMenuButton()
     menuBtn:ClearAllPoints()
@@ -2087,8 +2118,8 @@ local function PlaceMenuButton()
     -- dans la barre de navigation du haut de la carte, a droite du fil d'Ariane
     local nav = WorldMapFrame.NavBar
     if nav and nav.GetRight then
-        menuBtn:SetPoint("RIGHT", nav, "RIGHT", -34, 0)
-        miniBtn:SetPoint("RIGHT", nav, "RIGHT", -34, 0)
+        menuBtn:SetPoint("RIGHT", nav, "RIGHT", -34, -4)
+        miniBtn:SetPoint("RIGHT", nav, "RIGHT", -34, -5)
     else
         menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -30)
         miniBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -30)

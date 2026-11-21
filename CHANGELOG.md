@@ -1,3 +1,9 @@
+# 0.4.29
+
+- **Map button is now a small Deathskip icon tab** in the world map's top bar, instead of the big red button. Click it for the map options.
+- The "-" minimise button is gone: the icon is already compact.
+- Data unchanged since 0.4.27 (15,167 real deaths).
+
 # 0.4.28
 
 - **Map button moved** into the world map's top bar, next to the zone path, so it no longer sits on top of the quest log.

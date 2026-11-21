@@ -42,7 +42,7 @@ You see your own faction by default, and it follows you when you switch between 
 
 ### ![](https://i.imgur.com/Q4ZUBcb.png) ___**Options right on the map**___
 
-The _Deathskip_ button in the world map's top bar opens a menu of clickable options (shrink it to an icon with its "-" button). Everything else is in _Options > AddOns > Deathskip_ (or type `/usf`):
+The _Deathskip_ icon tab in the world map's top bar opens a menu of clickable options. Everything else is in _Options > AddOns > Deathskip_ (or type `/usf`):
 
 *   **HORDE / ALLIANCE** buttons to pick the faction you see, and an **ON/OFF** button to hide everything at once
 *   **caves and tunnels** outlined in orange where the respawn differs from the surface (Timbermaw Hold)
