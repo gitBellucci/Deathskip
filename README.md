@@ -42,13 +42,14 @@ You see your own faction by default, and it follows you when you switch between 
 
 ### ![](https://i.imgur.com/Q4ZUBcb.png) ___**Options right on the map**___
 
-The _Deathskip_ button at the top right of the world map opens a menu of clickable options. Everything else is in _Options > AddOns > Deathskip_ (or type `/usf`):
+The _Deathskip_ button in the world map's top bar opens a menu of clickable options (shrink it to an icon with its "-" button). Everything else is in _Options > AddOns > Deathskip_ (or type `/usf`):
 
 *   **HORDE / ALLIANCE** buttons to pick the faction you see, and an **ON/OFF** button to hide everything at once
 *   **caves and tunnels** outlined in orange where the respawn differs from the surface (Timbermaw Hold)
 *   subzone borders (also on the continent map), non impacted sub zones (dashed), red splits, graveyard markers, and the old Classic unstucks and deathskips (set apart)
 *   graveyards as a spirit-healer icon or a cross, 4 sizes, 5 colors, with or without names
 *   tooltip on/off, text size, green line
+*   a minimap button: left-click for the on-screen box, right-click for the options
 *   the on-screen box (on by default, close it with its X, bring it back from the map menu): where you are, and the graveyard you'd respawn at if you died there, updated as you walk
 
 ![Options](https://i.imgur.com/Z0qSaP0.jpeg)

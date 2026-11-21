@@ -1,3 +1,10 @@
+# 0.4.28
+
+- **Map button moved** into the world map's top bar, next to the zone path, so it no longer sits on top of the quest log.
+- **Minimise it:** a small "-" button shrinks it to the Deathskip icon; click the icon to bring it back (remembered).
+- **New minimap button:** left-click shows/hides the on-screen box, right-click opens the options, drag to move it around the minimap. Hide it from the map menu (Other > Minimap button) or with `/usf minimap`.
+- Data unchanged since 0.4.27 (15,167 real deaths).
+
 # 0.4.27
 
 - **Data update: 15,167 real deaths** (630 new since 0.4.26, 5,609 Horde deaths in total). 99% correct in cross-validation.

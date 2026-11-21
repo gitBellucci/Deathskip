@@ -1859,6 +1859,9 @@ SlashCmdList.UNSTUCKSKIPSFOREVER = function(msg)
     elseif msg == "notifier" then
         db.showNotifier = not db.showNotifier
         UpdateNotifier()
+    elseif msg == "minimap" then
+        db.hideMinimap = (not db.hideMinimap) or nil
+        if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end
     else
         Print(T("/usf (options) · /usf notifier · /usf partage · /usf data · /usf morts · /usf dots",
                 "/usf (options) · /usf notifier · /usf share · /usf data · /usf deaths · /usf dots"))
@@ -2048,26 +2051,77 @@ end
 -- Menu sur la carte : bouton en haut a droite + cases cliquables
 ---------------------------------------------------------------------------
 local menuBtn = CreateFrame("Button", nil, WorldMapFrame, "UIPanelButtonTemplate")
-menuBtn:SetSize(160, 22)
+menuBtn:SetSize(120, 20)
 menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -60)
 menuBtn:SetFrameStrata("DIALOG")
 menuBtn:SetFrameLevel(500)
 menuBtn:SetText("Deathskip")
 -- avec l'addon UnstuckSkips original (SeargentFish) : ses boutons "Show UnstuckSkips" / "Show DeathSkips" sont au
 -- meme endroit (-60, -60 et -60, -82) ; le notre se met a leur gauche pour ne pas les recouvrir
+-- version reduite : une simple icone a la meme place
+local miniBtn = CreateFrame("Button", nil, WorldMapFrame)
+miniBtn:SetSize(20, 20)
+miniBtn:SetFrameStrata("DIALOG")
+miniBtn:SetFrameLevel(500)
+miniBtn.icon = miniBtn:CreateTexture(nil, "ARTWORK")
+miniBtn.icon:SetAllPoints()
+miniBtn.icon:SetTexture("Interface\\AddOns\\" .. ADDON .. "\\Media\\icon.tga")
+miniBtn:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+miniBtn:Hide()
+-- bouton "-" a gauche du bouton Deathskip
+local minBtn = CreateFrame("Button", nil, menuBtn)
+minBtn:SetSize(16, 16)
+minBtn:SetPoint("RIGHT", menuBtn, "LEFT", -2, 0)
+minBtn:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
+minBtn:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
+minBtn:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
+
+local function ApplyMapBtnMin()
+    local min = DB().mapBtnMin
+    menuBtn:SetShown(not min)
+    miniBtn:SetShown(min and true or false)
+end
 local function PlaceMenuButton()
-    local other = _G.UnstuckSkips_Toggle
     menuBtn:ClearAllPoints()
-    if other and other.GetLeft then
-        menuBtn:SetPoint("TOPRIGHT", other, "TOPLEFT", -8, 0)
+    miniBtn:ClearAllPoints()
+    -- dans la barre de navigation du haut de la carte, a droite du fil d'Ariane
+    local nav = WorldMapFrame.NavBar
+    if nav and nav.GetRight then
+        menuBtn:SetPoint("RIGHT", nav, "RIGHT", -34, 0)
+        miniBtn:SetPoint("RIGHT", nav, "RIGHT", -34, 0)
     else
-        menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -60)
+        menuBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -30)
+        miniBtn:SetPoint("TOPRIGHT", WorldMapFrame, "TOPRIGHT", -60, -30)
     end
+    ApplyMapBtnMin()
 end
 PlaceMenuButton()
 WorldMapFrame:HookScript("OnShow", PlaceMenuButton)
+minBtn:SetScript("OnClick", function()
+    DB().mapBtnMin = true
+    if ns.mapMenu then ns.mapMenu:Hide() end
+    ApplyMapBtnMin()
+end)
+minBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip:SetText(T("Réduire le bouton Deathskip", "Minimise the Deathskip button"))
+    GameTooltip:Show()
+end)
+minBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+miniBtn:SetScript("OnClick", function()
+    DB().mapBtnMin = nil
+    ApplyMapBtnMin()
+end)
+miniBtn:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip:SetText("Deathskip")
+    GameTooltip:AddLine(T("Clic : réafficher le bouton", "Click: show the button again"), 1, 1, 1)
+    GameTooltip:Show()
+end)
+miniBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
 local menu = CreateFrame("Frame", nil, menuBtn, "BackdropTemplate")
+ns.mapMenu = menu
 menu:SetPoint("TOPRIGHT", menuBtn, "BOTTOMRIGHT", 0, -2)
 menu:SetBackdrop({bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
                   edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -2135,6 +2189,8 @@ local menuSections = {
          function() return DB().showNotifier and true or false end, function(v) DB().showNotifier = v; UpdateNotifier() end},
         {T("Morts enregistrées (bleu)", "Recorded deaths (blue)"), T("Points bleus : les vraies morts des joueurs utilisées par l'addon.", "Blue dots: the real player deaths the addon is built from."),
          function() return DB().showDeaths and true or false end, function(v) DB().showDeaths = v end},
+        {T("Bouton de la minicarte", "Minimap button"), T("Clic gauche : encadré à l'écran. Clic droit : options. Glisser : déplacer.", "Left-click: on-screen box. Right-click: options. Drag: move."),
+         function() return not DB().hideMinimap end, function(v) DB().hideMinimap = (not v) or nil; if ns.UpdateMinimapButton then ns.UpdateMinimapButton() end end},
     }},
     -- ... et une rubrique a part, grisee : les donnees de l'addon Classic d'origine
     {T("UnstuckSkips Classic", "Classic UnstuckSkips"), {
@@ -2355,4 +2411,72 @@ do
             return evidenceKeys[key] == true
         end,
     }
+end
+
+---------------------------------------------------------------------------
+-- Bouton de la minicarte : clic gauche = encadre a l'ecran, clic droit = options, glisser = deplacer
+---------------------------------------------------------------------------
+do
+    local mm = CreateFrame("Button", "DeathskipMinimapButton", Minimap)
+    mm:SetSize(31, 31)
+    mm:SetFrameStrata("MEDIUM")
+    mm:SetFrameLevel(8)
+    mm:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    mm:RegisterForDrag("LeftButton")
+    mm:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
+    local bg = mm:CreateTexture(nil, "BACKGROUND")
+    bg:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
+    bg:SetSize(20, 20)
+    bg:SetPoint("TOPLEFT", 7, -5)
+    local icon = mm:CreateTexture(nil, "ARTWORK")
+    icon:SetTexture("Interface\\AddOns\\" .. ADDON .. "\\Media\\icon.tga")
+    icon:SetSize(18, 18)
+    icon:SetPoint("TOPLEFT", 7, -6)
+    local border = mm:CreateTexture(nil, "OVERLAY")
+    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
+    border:SetSize(53, 53)
+    border:SetPoint("TOPLEFT")
+
+    local function Place()
+        local angle = math.rad(DB().minimapAngle or 205)
+        local r = (Minimap:GetWidth() or 140) / 2 + 5
+        mm:ClearAllPoints()
+        mm:SetPoint("CENTER", Minimap, "CENTER", math.cos(angle) * r, math.sin(angle) * r)
+    end
+    function ns.UpdateMinimapButton()
+        mm:SetShown(not DB().hideMinimap)
+        Place()
+    end
+    mm:SetScript("OnDragStart", function(self)
+        self:SetScript("OnUpdate", function()
+            local mx, my = Minimap:GetCenter()
+            local cx, cy = GetCursorPosition()
+            local scale = Minimap:GetEffectiveScale()
+            cx, cy = cx / scale, cy / scale
+            DB().minimapAngle = math.deg(math.atan2(cy - my, cx - mx))
+            Place()
+        end)
+    end)
+    mm:SetScript("OnDragStop", function(self) self:SetScript("OnUpdate", nil) end)
+    mm:SetScript("OnClick", function(_, button)
+        if button == "RightButton" then
+            if ns.OpenOptions then ns.OpenOptions() end
+        else
+            local db = DB()
+            db.showNotifier = not db.showNotifier
+            UpdateNotifier()
+        end
+    end)
+    mm:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText("Deathskip")
+        GameTooltip:AddLine(T("Clic gauche : encadré à l'écran", "Left-click: on-screen box"), 1, 1, 1)
+        GameTooltip:AddLine(T("Clic droit : options", "Right-click: options"), 1, 1, 1)
+        GameTooltip:AddLine(T("Glisser : déplacer", "Drag: move"), 0.6, 0.6, 0.6)
+        GameTooltip:Show()
+    end)
+    mm:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    local ev = CreateFrame("Frame")
+    ev:RegisterEvent("PLAYER_LOGIN")
+    ev:SetScript("OnEvent", function() ns.UpdateMinimapButton() end)
 end
