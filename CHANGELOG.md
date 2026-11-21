@@ -2,11 +2,31 @@
 
 - **Data update: 15,167 real deaths** (630 new since 0.4.26, 5,609 Horde deaths in total). 99% correct in cross-validation.
 - The new deaths were already predicted right 97% of the time before being added; mostly Horde, they sharpen the Horde side further.
+- **Fixed for Alliance:**
+  - Lake Mereldar (Eastern Plaguelands): Light's Hope Chapel, not Darrowshire
+  - Weazel's Crater (Thousand Needles): Shimmering Flats, not The Great Lift
+- **Fixed for Horde:**
+  - All of Teldrassil (Shadowglen, Dolanaar, Rut'theran...): Dolanaar, not Twilight Vale
+  - Mist's Edge (Darkshore): Auberdine, not Twilight Vale
+  - Brightwood Grove (Duskwood): Darkshire, not Ravenhill or Lakeshire
+  - Arathi Highlands (open zone and coast): Arathi Highlands graveyard, not The Overlook Cliffs
+  - Bear's Head (Azshara): Talrendis Point, not Southridge Beach
+  - The Dustbowl (Badlands): north-east Badlands graveyard, not Kargath
+  - Lake Mereldar (Eastern Plaguelands): Light's Hope Chapel, not Darrowshire
+  - Weazel's Crater (Thousand Needles): Shimmering Flats, not The Great Lift
 
 # 0.4.26
 
 - **Data update: 14,537 real deaths** (2,702 new since 0.4.25, 5,008 Horde deaths in total). 99% correct in cross-validation.
 - The new deaths were already predicted right 99.4% of the time before being added; they sharpen both factions further.
+- **Fixed for Alliance:**
+  - Ruins of Ravenwind (Feralas): Dire Maul, not Feathermoon Stronghold
+  - Stonesplinter Valley (Loch Modan): north-east Badlands graveyard, not Thelsamar
+  - Raptor Grounds (The Barrens): Ratchet, not Camp Taurajo
+  - Shrine of Aviana (Mount Hyjal): Elderwild, not Summit of Eternity
+- **Fixed for Horde:**
+  - Stonesplinter Valley (Loch Modan): north-east Badlands graveyard, not Thelsamar
+  - Raptor Grounds (The Barrens): Ratchet, not Camp Taurajo
 
 # 0.4.25
 
