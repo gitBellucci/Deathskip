@@ -1,3 +1,9 @@
+# 0.4.30
+
+- **Data update: 16,556 real deaths** (1,389 new since 0.4.29). 99% correct in cross-validation.
+- **Alliance fixes:** Teldrassil now Aldrassil (was Dolanaar / Darnassus); Wetlands now Baradin Bay (was Crossroads); Arathi Highlands and The Forbidding Sea coast now Arathi Highlands (was The Overlook Cliffs); Corin's Crossing (Eastern Plaguelands) now Blackwood Lake (was Light's Hope Chapel); Ruins of Zul'Mamwe (Stranglethorn Vale) now Booty Bay (was Northern Stranglethorn).
+- **Horde fixes:** Drygulch Ravine and Darkspear Strand (Durotar) now Razor Hill (was Northern Durotar / Sen'jin Village).
+
 # 0.4.29
 
 - **Map button is now a small Deathskip icon tab** in the world map's top bar, instead of the big red button. Click it for the map options.
