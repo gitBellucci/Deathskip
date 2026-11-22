@@ -1,3 +1,9 @@
+# 0.4.31
+
+- **Data update: 17,834 real deaths** (1,278 new since 0.4.30). 99% correct in cross-validation.
+- **Alliance fixes:** Stonesplinter Valley (Loch Modan) now Thelsamar (was Badlands Graveyard NE).
+- **Horde fixes:** Stonesplinter Valley (Loch Modan) now Thelsamar (was Badlands Graveyard NE).
+
 # 0.4.30
 
 - **Data update: 16,556 real deaths** (1,389 new since 0.4.29). 99% correct in cross-validation.
